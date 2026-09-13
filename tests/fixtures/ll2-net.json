@@ -9,6 +9,6 @@
     "pad": { "name": "Pad A", "location": { "name": "Cape Canaveral" } },
     "rocket": { "configuration": { "full_name": "Falcon 9 Block 5" } },
     "mission": null,
-    "info_urls": []
+    "info_urls": [{ "source": "spacex.com", "url": "http://example.invalid/" }]
   }]
 }

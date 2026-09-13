@@ -83,7 +83,7 @@ printf '%s' "$payload" | jq --arg fetchedAt "$fetched_at" --arg expiresAt "$expi
             site: ([.pad.name, .pad.location.name] | map(select(. != null and . != "")) | join(", ")),
             rocket: (.rocket.configuration.full_name // ""),
             mission: (.mission.name // ""),
-            referenceUrl: (([.info_urls[]? | select(.source == "spacex.com" and (.url | type == "string")) | .url][0]) // "https://www.spacex.com/launches/"),
+            referenceUrl: (([.info_urls[]? | select(.source == "spacex.com" and (.url | type == "string") and (.url | startswith("https://"))) | .url][0]) // "https://www.spacex.com/launches/"),
             outcomeConfirmed: false
         };
     [ .results[]?
