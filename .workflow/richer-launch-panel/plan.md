@@ -6,13 +6,13 @@ Status: complete
 
 ## Execution state
 
-- Current: Step 4 — replace the panel's one-entry + preview layout with the three-entry repeater
+- Current: Step 5 — update the pill's cache lookup and release version
 - Writer: OpenAI · GPT-5.6 Terra (self-declared)
 - Baseline: manifest validation pass; tests pass (1/1 file); lint pass
 - Contract in flight: cache `schemaVersion: 2`; `launches: [≤3]`; each launch gains `rocketFamily`
 - Uncommitted planned files: none
 - Pending decisions: none
-- Step commits: Step 1 @ a911c4e; Step 2 @ 15fcd52; Step 3 @ 03366a1
+- Step commits: Step 1 @ a911c4e; Step 2 @ 15fcd52; Step 3 @ 03366a1; Step 4 @ 6e8a3bc
 
 ## Findings
 
@@ -43,9 +43,10 @@ Status: complete
   - Check: `( set -e; S=$(mktemp -d); for f in assets/falcon-9.svg assets/falcon-heavy.svg assets/starship.svg; do xmllint --noout "$f"; [ "$(wc -c < "$f")" -le 4096 ]; rsvg-convert -w 200 -b '#202830' "$f" -o "$S/$(basename "$f" .svg).png"; done; omarchy plugin validate .; echo "PNGs: $S" )` (pre: on a clean tree "Can't open assets/falcon-9.svg", exit 4; with the drafted uncommitted SVGs in place exit 0, 297/529/323 bytes, PNGs written)
   - Skills: none
   - Writer: OpenAI · GPT-5.6 Terra
-- [ ] Step 4 — `Panel.qml`: `launches` from cache; hero unchanged (label title, `launches[0].mission` meta); the single-entry block, `PanelSeparator` and "NEXT LAUNCH" preview replaced by a `Repeater` over `launches` — each delegate: background `Image` (`Qt.resolvedUrl(Model.rocketArt(launch))`, `PreserveAspectFit` on the right edge, `sourceSize` × `Screen.devicePixelRatio`, `layer.enabled`, `MultiEffect` tinted to `root.foreground`, opacity 0.12, hidden when `rocketArt` is `""`), LOCAL TIME/SITE/ROCKET/MISSION rows via `Model.launchTimeLabel(launch, nowMs)`, its own "Open SpaceX launch page" link, `PanelSeparator` between entries; "No scheduled launch" and stale dimming as before (`Panel.qml`) (F2, F5–F8)
+- [x] Step 4 — `Panel.qml`: `launches` from cache; hero unchanged (label title, `launches[0].mission` meta); the single-entry block, `PanelSeparator` and "NEXT LAUNCH" preview replaced by a `Repeater` over `launches` — each delegate: background `Image` (`Qt.resolvedUrl(Model.rocketArt(launch))`, `PreserveAspectFit` on the right edge, `sourceSize` × `Screen.devicePixelRatio`, `layer.enabled`, `MultiEffect` tinted to `root.foreground`, opacity 0.12, hidden when `rocketArt` is `""`), LOCAL TIME/SITE/ROCKET/MISSION rows via `Model.launchTimeLabel(launch, nowMs)`, its own "Open SpaceX launch page" link, `PanelSeparator` between entries; "No scheduled launch" and stale dimming as before (`Panel.qml`) (F2, F5–F8)
   - Check: `grep -o 'Repeater {' Panel.qml | wc -l && grep -o 'MultiEffect {' Panel.qml | wc -l && grep -o 'rocketArt(' Panel.qml | wc -l && grep -o 'formatAfterNext' Panel.qml Model.js | wc -l` (pre: 1 0 0 2 — post: 2 1 ≥1 0)
   - Skills: none
+  - Writer: OpenAI · GPT-5.6 Terra
 - [ ] Step 5 — Mechanical follow-through: `BarWidget.qml` tick-interval reads `Model.nextLaunch(root.cache)`; `manifest.json` version `1.1.0` (`BarWidget.qml`, `manifest.json`) (F2)
   - Check: `grep -o 'nextLaunch(' BarWidget.qml | wc -l && grep -o 'cache.next' BarWidget.qml Panel.qml Model.js | wc -l && jq -r .version manifest.json` (pre: 0 4 1.0.0 — post: 1 0 1.1.0)
   - Skills: none
