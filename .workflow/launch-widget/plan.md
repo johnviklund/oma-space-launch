@@ -4,6 +4,15 @@ Base: 1598f8547cb8374629b9a4e0af568e2debf778f0
 Inputs: .workflow/launch-widget/brainstorm.md @ 72547a83b948a782b462227d7059e380f95e6782; .workflow/launch-widget/spec.md @ e00a194ef5359cf2f15d755791c0eb0fc01daeac
 Status: complete
 
+## Execution state
+
+- Current: Step 2 — Helper · pending
+- Step 1 @ a77f487
+- Writer: OpenAI · GPT-5.6 Terra (self-declared)
+- Baseline: `omarchy plugin validate .` exit 1 (manifest absent); `tests/run` exit 127 (absent)
+- Check: Step 1 passed — manifest validates; `tests/run` appears once in AGENTS.md
+- In flight: `LaunchCacheV1`, schemaVersion 1; no uncommitted files; no pending decisions
+
 ## Findings
 
 | # | What is true (verified against LL2 2.3.0 live + `/usr/share/omarchy/shell` 4.0.0.alpha) | What it changes |
@@ -23,9 +32,10 @@ Status: complete
 
 ## Checklist
 
-- [ ] Step 1 — Scaffold + command contracts: `manifest.json` (id `oma-space-launch`, kinds `["bar-widget"]`, `barWidget.defaultSection: "center"`, displayName/category/allowMultiple like Weather), `tests/run` (validate + `bash -n` + `node --check` + node tests), AGENTS.md Command contracts TODOs → the F11 commands (`manifest.json`, `tests/run`, `AGENTS.md`) (F11)
+- [x] Step 1 — Scaffold + command contracts: `manifest.json` (id `oma-space-launch`, kinds `["bar-widget"]`, `barWidget.defaultSection: "center"`, displayName/category/allowMultiple like Weather), `tests/run` (validate + `bash -n` + `node --check` + node tests), AGENTS.md Command contracts TODOs → the F11 commands (`manifest.json`, `tests/run`, `AGENTS.md`) (F11)
   - Check: `omarchy plugin validate . && grep -o 'tests/run' AGENTS.md | wc -l` (pre: exit 1 "missing manifest.json"; 0)
   - Skills: none
+  - Writer: OpenAI · GPT-5.6 Terra
 - [ ] Step 2 — Helper: `scripts/fetch-launches.sh` — `--from <file>` (offline) / live `GET .../2.3.0/launches/upcoming/?lsp__id=121&status__ids=1,2,5,6,8&ordering=net&limit=2&mode=detailed`, `--cache <path>`, `flock`, freshness skip, retry once, normalize to `LaunchCacheV1`, atomic write, keep cache on failure; fixtures `tests/fixtures/ll2-exact.json` (live capture, ≤ 3 results) + hand-edited `ll2-net.json`, `ll2-tbd.json`, `ll2-empty.json` (`scripts/fetch-launches.sh`, `tests/fixtures/*`) (F1–F6, F10)
   - Check: `bash -n scripts/fetch-launches.sh && scripts/fetch-launches.sh --from tests/fixtures/ll2-exact.json --cache "$PWD/.cache-test.json" && jq -e '.schemaVersion == 1 and .next.timePrecision == "exact" and (.next.referenceUrl | startswith("https://www.spacex.com/"))' .cache-test.json` (pre: exit 127)
   - Skills: none
@@ -52,6 +62,10 @@ Status: complete
 - Ships as valid community plugin (`omarchy-plugin-validate`, no symlinks inside) → 1, 6
 - TODO open questions: QML reuse (mirror Clock host, share `qs.Ui` kit, no shared code) → 4, 5; cadence/backoff → 2 (F6)
 - Non-goal: desktop notifications → untouched · launch filtering → untouched · timezone override → untouched
+
+## Deviations
+
+- Step 1: validator requires the declared entry point, so user-approved choice 1a added a minimal `BarWidget.qml` placeholder; Step 4 replaces it with the planned host implementation.
 
 ## Risks
 
