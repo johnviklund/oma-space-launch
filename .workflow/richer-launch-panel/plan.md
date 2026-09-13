@@ -6,13 +6,13 @@ Status: complete
 
 ## Execution state
 
-- Current: Step 6 — blocked: `omarchy-shell shell rescanPlugins` reports that the shell is not running; resume in a running Omarchy session
+- Current: Step 6 complete — next: Phase 4 review
 - Writer: OpenAI · GPT-5.6 Terra (self-declared)
-- Baseline: manifest validation pass; tests pass (1/1 file); lint pass
+- Baseline: manifest validation pass; tests pass (1/1 file); lint pass; final live-cache v2 check pass
 - Contract in flight: cache `schemaVersion: 2`; `launches: [≤3]`; each launch gains `rocketFamily`
 - Uncommitted planned files: none
-- Pending decisions: a running Omarchy session is required for reload and manual QA
-- Step commits: Step 1 @ a911c4e; Step 2 @ 15fcd52; Step 3 @ 03366a1; Step 4 @ 6e8a3bc; Step 5 @ eb52b10
+- Pending decisions: none
+- Step commits: Step 1 @ a911c4e; Step 2 @ 15fcd52; Step 3 @ 03366a1; Step 4 @ 6e8a3bc; Step 5 @ eb52b10; Step 6 @ 8f04da1
 
 ## Findings
 
@@ -51,9 +51,10 @@ Status: complete
   - Check: `grep -o 'nextLaunch(' BarWidget.qml | wc -l && grep -o 'cache.next' BarWidget.qml Panel.qml Model.js | wc -l && jq -r .version manifest.json` (pre: 0 4 1.0.0 — post: 1 0 1.1.0)
   - Skills: none
   - Writer: OpenAI · GPT-5.6 Terra
-- [ ] Step 6 — Reload + manual QA + README: `omarchy-shell shell rescanPlugins`; with the old v1 cache still on disk confirm the pill leaves `Loading` within one tick (F3); `--from` fixtures into the live cache path: `ll2-exact` → three entries, Falcon 9 ×2 + Falcon Heavy art, links open; `ll2-net` → one entry, Falcon 1 shows no art; `ll2-tbd` → Starship art, TBD time; art readable in a light and a dark theme; stale dimming still covers all entries; then `--force` back to live; README's offline-check paragraph mentions the 3-launch fixtures (`README.md`) (F3, F5, F6, F9)
+- [x] Step 6 — Reload + manual QA + README: `omarchy-shell shell rescanPlugins`; with the old v1 cache still on disk confirm the pill leaves `Loading` within one tick (F3); `--from` fixtures into the live cache path: `ll2-exact` → three entries, Falcon 9 ×2 + Falcon Heavy art, links open; `ll2-net` → one entry, Falcon 1 shows no art; `ll2-tbd` → Starship art, TBD time; art readable in a light and a dark theme; stale dimming still covers all entries; then `--force` back to live; README's offline-check paragraph mentions the 3-launch fixtures (`README.md`) (F3, F5, F6, F9)
   - Check: `tests/run && jq -e '.schemaVersion == 2 and (.launches | length) >= 1' "${XDG_CACHE_HOME:-$HOME/.cache}/oma-space-launch/launches.json"` (pre: tests pass, `false`, exit 1)
   - Skills: /home/johnviklund/.claude/skills/omarchy/SKILL.md
+  - Writer: OpenAI · GPT-5.6 Terra
 
 ## Coverage
 
@@ -78,7 +79,7 @@ Status: complete
 ## Deviations
 
 - Step 3 blocked (resolved by re-plan @ c0c6a5d): installed `rsvg-convert` rejects `-o /dev/null` (`Target file is not a regular file`), so the original check exited 1 before manifest validation. Check replaced per F10; SVGs untouched, still uncommitted.
-- Step 6 blocked: `omarchy-shell shell rescanPlugins` exited 0 but reported `omarchy-shell is not running`; the required reload and manual QA cannot run in this environment.
+- Step 6 initially blocked: `omarchy-shell shell rescanPlugins` reported no running shell from the agent sandbox. After the user restarted the shell, manual QA confirmed v1 recovery; exact, NET, and TBD states; art fallbacks; links; light/dark readability; stale dimming; and restoration of live data.
 
 ## TODO impacts
 
