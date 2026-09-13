@@ -21,23 +21,6 @@ Panel {
     readonly property string fontFamily: bar ? bar.fontFamily : Style.font.family
     readonly property bool stale: display.stale === true
 
-    function open() {
-        root.controller.show()
-    }
-
-    function close() {
-        root.controller.hide()
-    }
-
-    function toggle() {
-        if (root.opened) root.close()
-        else root.open()
-    }
-
-    function closeForPopoutSwitch() {
-        root.close()
-    }
-
     function switchPanel(direction) {
         if (root.bar && typeof root.bar.switchPanelFrom === "function")
             return root.bar.switchPanelFrom(root.barIdentity, direction)
