@@ -6,12 +6,13 @@ Status: complete
 
 ## Execution state
 
-- Current: Step 1 complete — next Step 2 (C1-6 reference-URL scheme guard)
+- Current: Step 2 complete — next Step 3 (C1-2 Launching state gate)
 - Seat: Default executor (Fix P1/P2/P3s) · approval auto · one step = one finding = one commit
 - Step 1 @ 09ee3f8
+- Step 2 @ d702b42
 - Writer: OpenAI · GPT-5.6 Terra (self-declared)
 - Baseline: `omarchy plugin validate .`, `tests/run` (1/1), and lint all pass
-- In flight: no uncommitted code files; pending Steps 2–7
+- In flight: no uncommitted code files; pending Steps 3–7
 - Rule: a step whose Disposition is `defer`/`wontfix` is skipped, not implemented
 
 ## Checklist
@@ -21,7 +22,7 @@ Status: complete
   - Skills: none
   - Disposition: fix now (recommended)
   - Writer: OpenAI · GPT-5.6 Terra
-- [ ] Step 2 — C1-6 (P3) Reference-URL scheme guard: extend the jq `select` at the `referenceUrl` line with `and (.url | startswith("https://"))`; give `tests/fixtures/ll2-net.json` an `info_urls` entry `{"source": "spacex.com", "url": "http://example.invalid/"}` so the fallback path has a fixture (`scripts/fetch-launches.sh`, `tests/fixtures/ll2-net.json`)
+- [x] Step 2 — C1-6 (P3) Reference-URL scheme guard: extend the jq `select` at the `referenceUrl` line with `and (.url | startswith("https://"))`; give `tests/fixtures/ll2-net.json` an `info_urls` entry `{"source": "spacex.com", "url": "http://example.invalid/"}` so the fallback path has a fixture (`scripts/fetch-launches.sh`, `tests/fixtures/ll2-net.json`)
   - Check: `rm -f .cache-test.json .cache-test.json.lock && grep -c 'startswith("https://")' scripts/fetch-launches.sh && scripts/fetch-launches.sh --from tests/fixtures/ll2-exact.json --cache "$PWD/.cache-test.json" --force && jq -e '.next.referenceUrl | startswith("https://www.spacex.com/launches/o3b")' .cache-test.json && scripts/fetch-launches.sh --from tests/fixtures/ll2-net.json --cache "$PWD/.cache-test.json" --force && jq -e '.next.referenceUrl == "https://www.spacex.com/launches/"' .cache-test.json; rm -f .cache-test.json .cache-test.json.lock` (pre: 0)
   - Skills: none
   - Disposition: fix now (recommended)
