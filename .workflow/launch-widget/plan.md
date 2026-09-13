@@ -6,16 +6,17 @@ Status: complete
 
 ## Execution state
 
-- Current: Step 6 — Dev install + manual QA + README · pending
+- Current: Step 6 — Dev install + manual QA + README · manual QA blocked
 - Step 1 @ a77f487
 - Step 2 @ 2b32154
 - Step 3 @ 299263e
 - Step 4 @ b7a2df6
 - Step 5 @ bbd3f51
+- User change @ ba6e9e5 — next preview renamed and weekday added
 - Writer: OpenAI · GPT-5.6 Terra (self-declared)
 - Baseline: `omarchy plugin validate .` exit 1 (manifest absent); `tests/run` exit 127 (absent)
-- Check: Step 5 passed — one separator and one browser launcher reference; manifest validates
-- In flight: `LaunchCacheV1`, schemaVersion 1; development install and manual QA pending; no uncommitted files
+- Check: plugin enabled and `tests/run` passes 4/4; live cache has schema 1 and a next launch
+- In flight: README.md uncommitted; manual QA blocked (agent has no Wayland display); pending user exercise
 
 ## Findings
 
@@ -74,6 +75,8 @@ Status: complete
 ## Deviations
 
 - Step 1: validator requires the declared entry point, so user-approved choice 1a added a minimal `BarWidget.qml` placeholder; Step 4 replaces it with the planned host implementation.
+- Step 6: `grim` cannot access a display from this agent environment, so the live pill/panel, stale marker, and rollover exercises require an active Omarchy session.
+- User change: the following-launch section is now "NEXT LAUNCH" and its date includes a weekday.
 
 ## Risks
 
