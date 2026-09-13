@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+omarchy plugin validate .
+bash -n scripts/fetch-launches.sh
+node --check Model.js
+node --test tests/model.test.mjs

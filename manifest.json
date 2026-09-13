@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "id": "oma-space-launch",
+  "name": "Space Launch",
+  "version": "1.0.0",
+  "author": "John Viklund",
+  "description": "SpaceX launch countdown pill with detail popup",
+  "kinds": [
+    "bar-widget"
+  ],
+  "entryPoints": {
+    "barWidget": "BarWidget.qml"
+  },
+  "barWidget": {
+    "defaultSection": "center",
+    "displayName": "Space Launch",
+    "description": "SpaceX launch countdown pill with detail popup",
+    "category": "Info",
+    "allowMultiple": false
+  }
+}
