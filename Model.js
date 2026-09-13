@@ -52,6 +52,22 @@ function formatAfterNext(launch) {
     return launch.mission ? time + " · " + launch.mission : time;
 }
 
+function launchTimeLabel(next, nowMs) {
+    if (!next)
+        return "TBD";
+
+    if (deriveFreshState(next, nowMs).state === "launching")
+        return "Launching";
+
+    if (next.timePrecision === "exact")
+        return formatLocalTime(next.net);
+
+    if (next.timePrecision === "net")
+        return "NET " + formatNetDate(next.net, true);
+
+    return "TBD";
+}
+
 function deriveState(cache, nowMs) {
     if (!cache)
         return { state: "loading", label: "Loading", stale: false };

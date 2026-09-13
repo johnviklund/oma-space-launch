@@ -5,7 +5,7 @@ import vm from "node:vm";
 
 const model = vm.runInThisContext(`(() => {
 ${readFileSync(new URL("../Model.js", import.meta.url), "utf8")}
-return { parseCache, deriveState, formatCountdown, formatNetDate, formatLocalTime, formatAfterNext };
+return { parseCache, deriveState, formatCountdown, formatNetDate, formatLocalTime, formatAfterNext, launchTimeLabel };
 })()`);
 
 const expiresAt = "2026-09-14T00:00:00Z";
@@ -47,6 +47,16 @@ test("in-flight launches are Launching", () => {
     const inFlight = { net: "2026-09-15T12:00:00Z", timePrecision: "net", statusId: 6 };
 
     assert.equal(model.deriveState(cache(inFlight, "2026-09-16T00:00:00Z"), now).state, "launching");
+});
+
+test("launchTimeLabel preserves launch-time uncertainty", () => {
+    const netLaunch = { net: "2026-09-15T00:00:00Z", timePrecision: "net" };
+    const launchingLaunch = { ...exactLaunch, net: "2026-09-13T11:59:59Z" };
+
+    assert.equal(model.launchTimeLabel(null, now), "TBD");
+    assert.equal(model.launchTimeLabel(launchingLaunch, now), "Launching");
+    assert.equal(model.launchTimeLabel(exactLaunch, now), model.formatLocalTime(exactLaunch.net));
+    assert.equal(model.launchTimeLabel(netLaunch, now), "NET Sep 15");
 });
 
 test("formatters keep pill and preview text compact", () => {
