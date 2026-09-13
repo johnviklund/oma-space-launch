@@ -6,12 +6,12 @@ Status: complete
 
 ## Execution state
 
-- Current: Step 3 — blocked by its `rsvg-convert -o /dev/null` check; next Step 3 after re-plan
+- Current: Step 3 — check amended by re-plan @ c0c6a5d (F10); resume Step 3: run the check, eyeball the PNGs, commit the SVGs
 - Writer: OpenAI · GPT-5.6 Terra (self-declared)
 - Baseline: manifest validation pass; tests pass (1/1 file); lint pass
 - Contract in flight: cache `schemaVersion: 2`; `launches: [≤3]`; each launch gains `rocketFamily`
-- Uncommitted planned files: `assets/falcon-9.svg`, `assets/falcon-heavy.svg`, `assets/starship.svg`
-- Pending decisions: replace Step 3's renderer sink with regular scratchpad PNG paths
+- Uncommitted planned files: `assets/falcon-9.svg`, `assets/falcon-heavy.svg`, `assets/starship.svg` — drafted, pass the amended check, awaiting human eyeball
+- Pending decisions: none
 - Step commits: Step 1 @ a911c4e; Step 2 @ 15fcd52
 
 ## Findings
@@ -27,6 +27,7 @@ Status: complete
 | F7 | `Panel.qml:47` already wraps content in a `Flickable`; `fittedContentHeight` caps at `availableCardHeight` | Taller panel needs no new scroll handling; overflow on short screens scrolls |
 | F8 | Helper requests `status__ids=1,2,5,6,8` and filters terminal launches; `launchTimeLabel(launch, nowMs)` derives `Launching` per launch | `launches[]` is always the next ≤ 3 unresolved launches — per-entry rollover (PRODUCT.md F3) holds by construction |
 | F9 | Plugin is symlink-installed and enabled; `omarchy-shell shell rescanPlugins` exists; `.cache-test.json` is neither tracked nor ignored | QA reloads in place; checks write caches to the scratchpad |
+| F10 | `rsvg-convert` 2.62.3 refuses a non-regular-file sink (`-o /dev/null` → "Target file is not a regular file"); the drafted SVGs are `fill="#fff"`, invisible on a transparent PNG | Step 3 check renders to `mktemp -d` PNGs with `-b '#202830'` so the human can eyeball them; fill colour is irrelevant at runtime (Step 4's `MultiEffect` colorizes) |
 
 ## Checklist
 
@@ -38,8 +39,8 @@ Status: complete
   - Check: `node --test tests/model.test.mjs && grep -o 'rocketArt' Model.js tests/model.test.mjs | wc -l` (pre: 0, tests 7/7)
   - Skills: none
   - Writer: OpenAI · GPT-5.6 Terra
-- [ ] Step 3 — Rocket art: three original monochrome silhouette SVGs (single fill, `viewBox`, no text/scripts/external refs, ≤ 4 KB each), rendered to PNG in the scratchpad for the human to eyeball before commit (`assets/falcon-9.svg`, `assets/falcon-heavy.svg`, `assets/starship.svg`) (F5, F6)
-  - Check: `for f in assets/falcon-9.svg assets/falcon-heavy.svg assets/starship.svg; do xmllint --noout "$f" && rsvg-convert "$f" -o /dev/null; done && omarchy plugin validate .` (pre: "Can't open assets/falcon-9.svg", exit 4)
+- [ ] Step 3 — Rocket art: three original monochrome silhouette SVGs (single fill, `viewBox`, no text/scripts/external refs, ≤ 4 KB each), rendered to PNG in a temp dir for the human to eyeball before commit (`assets/falcon-9.svg`, `assets/falcon-heavy.svg`, `assets/starship.svg`) (F5, F6, F10)
+  - Check: `( set -e; S=$(mktemp -d); for f in assets/falcon-9.svg assets/falcon-heavy.svg assets/starship.svg; do xmllint --noout "$f"; [ "$(wc -c < "$f")" -le 4096 ]; rsvg-convert -w 200 -b '#202830' "$f" -o "$S/$(basename "$f" .svg).png"; done; omarchy plugin validate .; echo "PNGs: $S" )` (pre: on a clean tree "Can't open assets/falcon-9.svg", exit 4; with the drafted uncommitted SVGs in place exit 0, 297/529/323 bytes, PNGs written)
   - Skills: none
 - [ ] Step 4 — `Panel.qml`: `launches` from cache; hero unchanged (label title, `launches[0].mission` meta); the single-entry block, `PanelSeparator` and "NEXT LAUNCH" preview replaced by a `Repeater` over `launches` — each delegate: background `Image` (`Qt.resolvedUrl(Model.rocketArt(launch))`, `PreserveAspectFit` on the right edge, `sourceSize` × `Screen.devicePixelRatio`, `layer.enabled`, `MultiEffect` tinted to `root.foreground`, opacity 0.12, hidden when `rocketArt` is `""`), LOCAL TIME/SITE/ROCKET/MISSION rows via `Model.launchTimeLabel(launch, nowMs)`, its own "Open SpaceX launch page" link, `PanelSeparator` between entries; "No scheduled launch" and stale dimming as before (`Panel.qml`) (F2, F5–F8)
   - Check: `grep -o 'Repeater {' Panel.qml | wc -l && grep -o 'MultiEffect {' Panel.qml | wc -l && grep -o 'rocketArt(' Panel.qml | wc -l && grep -o 'formatAfterNext' Panel.qml Model.js | wc -l` (pre: 1 0 0 2 — post: 2 1 ≥1 0)
@@ -73,7 +74,7 @@ Status: complete
 
 ## Deviations
 
-- Step 3 blocked: installed `rsvg-convert` rejects `-o /dev/null` (`Target file is not a regular file`), so the required command exits 1 before manifest validation. The SVGs remain uncommitted; Phase 2 must replace the sink with regular scratchpad PNG files before execution resumes.
+- Step 3 blocked (resolved by re-plan @ c0c6a5d): installed `rsvg-convert` rejects `-o /dev/null` (`Target file is not a regular file`), so the original check exited 1 before manifest validation. Check replaced per F10; SVGs untouched, still uncommitted.
 
 ## TODO impacts
 
