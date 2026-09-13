@@ -10,5 +10,5 @@ the `workflow` skill's `references/learning-worklog.md`.
   README.md) from `docs/archive/PRD-2026-09-13.md`.
 - Renamed repo folder from `plugin-next-spacex` to `oma-space-launch` to match the PRD's repo
   identity (confirmed via git remote).
-- Commits: (pending bootstrap commit)
+- Commits: 8259921
 - Why: turn a finished PRD into a workflow-ready repo before the first real `workflow brainstorm`.
