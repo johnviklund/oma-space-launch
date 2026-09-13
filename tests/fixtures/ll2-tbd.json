@@ -1,0 +1,14 @@
+{
+  "count": 1,
+  "results": [{
+    "id": "tbd-launch",
+    "name": "Starship | TBD launch",
+    "net": null,
+    "status": { "id": 2, "name": "To Be Determined" },
+    "net_precision": { "id": 7, "name": "Month" },
+    "pad": { "name": "Starbase", "location": { "name": "Texas, USA" } },
+    "rocket": { "configuration": { "full_name": "Starship" } },
+    "mission": null,
+    "info_urls": []
+  }]
+}
