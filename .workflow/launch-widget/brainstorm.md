@@ -2,7 +2,7 @@ Command: workflow brainstorm launch-widget
 Created: 2026-09-13
 Base: 72547a83b948a782b462227d7059e380f95e6782
 Inputs: none
-Status: complete
+Status: done
 
 ## Roadmap link
 

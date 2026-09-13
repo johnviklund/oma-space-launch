@@ -2,7 +2,7 @@ Command: workflow wrap launch-widget
 Created: 2026-09-13
 Base: 80b9adf6dbe64e83fd9670c6c7ffab2b8fbb4c7f
 Inputs: review.md @ 80b9adf6dbe64e83fd9670c6c7ffab2b8fbb4c7f
-Status: drafting
+Status: done
 
 ## Steps
 
@@ -14,4 +14,4 @@ Status: drafting
 - [x] 6. TODO hygiene — archived both resolved open questions with pointers to `.workflow/launch-widget/`
 - [x] 7. Eval deposit — no `learnings.md`, no `[durable→eval]` lines; nothing to deposit
 - [x] 8. WORKLOG.md entry — added
-- [ ] 9. Archive the run
+- [x] 9. Archive the run — deleted spec.md, patch_plan.md; stripped Execution state from plan.md; Status: done set on brainstorm.md, plan.md, review.md, wrap.md

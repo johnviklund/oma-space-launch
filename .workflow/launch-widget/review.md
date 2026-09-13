@@ -2,7 +2,7 @@ Command: workflow review launch-widget (cycle 2)
 Created: 2026-09-13
 Base: 853d02d72a0912c543b9ca59e4061934698ba1b8
 Inputs: .workflow/launch-widget/plan.md @ 1598f8547cb8374629b9a4e0af568e2debf778f0; .workflow/launch-widget/patch_plan.md @ b985c76170d5f84a0cf42440e15bf6a6e5f8c52e
-Status: complete
+Status: done
 
 ## Coverage
 - [x] brainstorm.md scope: pill states countdown/NET/TBD/Launching/Stale → delivered by steps 2–4 (`Model.js:52–82`, `BarWidget.qml:121–123`); Launching mis-fires for non-exact NETs (C1-2)
