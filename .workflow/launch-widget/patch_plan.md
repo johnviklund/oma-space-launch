@@ -6,7 +6,7 @@ Status: complete
 
 ## Execution state
 
-- Current: Step 7 edited, awaiting required live stale-NET QA; `Panel.qml` is uncommitted
+- Current: Phase 3 complete — ready for Phase 4 review cycle 2
 - Seat: Default executor (Fix P1/P2/P3s) · approval auto · one step = one finding = one commit
 - Step 1 @ 09ee3f8
 - Step 2 @ d702b42
@@ -14,9 +14,10 @@ Status: complete
 - Step 4 @ 5db6e3f
 - Step 5 @ 1549a28
 - Step 6 @ 82f179f
+- Step 7 @ 529cfec
 - Writer: OpenAI · GPT-5.6 Terra (self-declared)
 - Baseline: `omarchy plugin validate .`, `tests/run` (1/1), and lint all pass
-- In flight: `Panel.qml` uncommitted; Step 7 pending; installed Omarchy skill approved as substitute
+- In flight: no uncommitted files; all patch steps complete; pending Phase 4 review cycle 2
 - Rule: a step whose Disposition is `defer`/`wontfix` is skipped, not implemented
 
 ## Checklist
@@ -51,7 +52,7 @@ Status: complete
   - Skills: /home/johnviklund/.claude/skills/omarchy/SKILL.md
   - Disposition: fix now (recommended)
   - Writer: OpenAI · GPT-5.6 Terra
-- [ ] Step 7 — C1-5 (P3, panel half) Replace `Panel.qml`'s `launchTimeLabel()` function with `Model.launchTimeLabel(root.next, root.hostWidget ? root.hostWidget.nowMs : Date.now())` in the LOCAL TIME row. Manual QA: `scripts/fetch-launches.sh --from tests/fixtures/ll2-net.json --cache ~/.cache/oma-space-launch/launches.json --force`, then edit `expiresAt` into the past → panel LOCAL TIME row reads `NET Oct 1` (dimmed), not a clock time; middle-click the pill afterwards to restore live data (`Panel.qml`)
+- [x] Step 7 — C1-5 (P3, panel half) Replace `Panel.qml`'s `launchTimeLabel()` function with `Model.launchTimeLabel(root.next, root.hostWidget ? root.hostWidget.nowMs : Date.now())` in the LOCAL TIME row. Manual QA: `scripts/fetch-launches.sh --from tests/fixtures/ll2-net.json --cache ~/.cache/oma-space-launch/launches.json --force`, then edit `expiresAt` into the past → panel LOCAL TIME row reads `NET Oct 1` (dimmed), not a clock time; middle-click the pill afterwards to restore live data (`Panel.qml`)
   - Check: `grep -c 'Model.launchTimeLabel(' Panel.qml && grep -c 'function launchTimeLabel' Panel.qml; omarchy plugin validate .` (pre: 0; 1 → expect 1; 0)
   - Skills: /home/johnviklund/.claude/skills/omarchy/SKILL.md
   - Disposition: fix now (recommended)
@@ -64,4 +65,4 @@ Status: complete
 ## Deviations
 
 - Step 6: required skill path was absent; user approved `/home/johnviklund/.codex/skills/omarchy/SKILL.md` as its substitute. Structural and manifest checks pass; user passed the live Tab-switch QA.
-- Step 7: structural check and manifest validation pass, but live stale-NET QA is blocked because `omarchy-shell` is not running in this session.
+- Step 7: structural and manifest checks pass; user passed the live stale-NET QA.
