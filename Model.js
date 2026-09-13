@@ -1,9 +1,29 @@
 function parseCache(text) {
     try {
         const cache = JSON.parse(text);
-        return cache && cache.schemaVersion === 1 ? cache : null;
+        return cache && cache.schemaVersion === 2 && Array.isArray(cache.launches) ? cache : null;
     } catch (_) {
         return null;
+    }
+}
+
+function nextLaunch(cache) {
+    return cache && Array.isArray(cache.launches) ? cache.launches[0] || null : null;
+}
+
+function rocketArt(launch) {
+    if (!launch)
+        return "";
+
+    switch (launch.rocketFamily) {
+    case "Falcon 9":
+        return "assets/falcon-9.svg";
+    case "Falcon Heavy":
+        return "assets/falcon-heavy.svg";
+    case "Starship":
+        return "assets/starship.svg";
+    default:
+        return "";
     }
 }
 
@@ -35,23 +55,6 @@ function formatLocalTime(isoTime) {
     return isNaN(date.getTime()) ? "TBD" : date.toLocaleString();
 }
 
-function formatWeekdayDate(isoTime, utcCalendar = true) {
-    const date = new Date(isoTime);
-    if (isNaN(date.getTime()))
-        return "TBD";
-
-    const weekday = utcCalendar ? date.getUTCDay() : date.getDay();
-    return ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][weekday] + ", " + formatNetDate(isoTime, utcCalendar);
-}
-
-function formatAfterNext(launch) {
-    if (!launch)
-        return "";
-
-    const time = launch.timePrecision === "tbd" ? "TBD" : "NET " + formatWeekdayDate(launch.net, launch.timePrecision !== "exact");
-    return launch.mission ? time + " · " + launch.mission : time;
-}
-
 function launchTimeLabel(next, nowMs) {
     if (!next)
         return "TBD";
@@ -72,7 +75,7 @@ function deriveState(cache, nowMs) {
     if (!cache)
         return { state: "loading", label: "Loading", stale: false };
 
-    const next = cache.next;
+    const next = nextLaunch(cache);
     const expiresAt = Date.parse(cache.expiresAt);
     const isStale = !isNaN(expiresAt) && nowMs > expiresAt;
     const fresh = deriveFreshState(next, nowMs);
