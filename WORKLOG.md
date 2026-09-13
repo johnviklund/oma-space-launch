@@ -5,6 +5,29 @@ source of truth (git is) and not an archive — keep roughly the 15 most recent 
 older ones when appending past that (they remain in git history). Entry shape and full rules: see
 the `workflow` skill's `references/learning-worklog.md`.
 
+## 2026-09-13 · launch-panel-photos · panel back to 1 detail + upcoming list, real launch photos · Anthropic · Sonnet 5
+- Reverted the 3-full-entry panel to one detailed next-launch entry (time/site/rocket/mission/
+  link) + a compact "UPCOMING" list of the next three launches (`<date> <time> · <rocket> ·
+  <mission>`, generous row spacing); bumped LL2 fetch/cache limit 3→4 to feed both.
+- Replaced flat rocket-family SVG silhouettes with real launch photos (`F9_2_mobile.jpg`,
+  `FH_8_mobile.jpg`, `starship.jpeg`, human-supplied) rendered as a full-panel background:
+  grayscale (`MultiEffect { saturation: -1.0 }`), true left-to-right fade (opaque hold across the
+  left half, fades to fully visible on the right), flush to the panel's inner border. Removed the
+  now-dead per-entry SVG code path and the unused SVG assets. Swapped hero icon `mdi-power` →
+  `mdi-rocket`.
+- Iterative fixes caught live: a `visible: false` `MultiEffect` mask source rendered nothing (hid
+  the image entirely) — replaced with a plain gradient `Rectangle` overlay; `PreserveAspectFit`
+  left letterboxing — switched to `PreserveAspectCrop`; background was inset by `KeyboardPanel`'s
+  content padding — fixed with `anchors.margins: -panel.padding`.
+- Commits: 25b300e (code) · 50ee83c (run record)
+- Review: no formal cross-vendor pass — verified via `bash tests/run` (10/10) + interactive visual
+  QA against the running panel after every step; deviation noted in `review.md`.
+- Run: 11 steps (retroactively recorded) · 0 formal review cycles · 1 deviation (Step 5 mask-bug
+  re-plan) · 0 findings overturned
+- Seats: Anthropic·Sonnet 5 (all phases, single session — ad hoc, not seat-routed)
+- Why: `richer-launch-panel`'s uniform 3-entry layout didn't match what the human actually wanted;
+  worked live against the running panel instead of a forward brainstorm.
+
 ## 2026-09-13 · richer-launch-panel · v1.1 panel expands to 3 launches + rocket art · OpenAI · GPT-5.6 Terra
 - Panel now lists the next three launches (was one full + a bare after-next preview), each with
   local time/NET/TBD, site/pad, rocket + variant, mission, link, against a faded rocket-family

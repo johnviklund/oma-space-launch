@@ -2,7 +2,7 @@ Command: workflow brainstorm launch-panel-photos (retroactive)
 Created: 2026-09-13
 Base: 6d4506b
 Inputs: none
-Status: complete
+Status: done
 
 ## Note on process
 
