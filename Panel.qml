@@ -83,6 +83,7 @@ Panel {
                         delegate: Item {
                             id: launchEntry
                             required property var modelData
+                            required property int index
                             width: parent.width
                             implicitHeight: launchContent.implicitHeight
 
