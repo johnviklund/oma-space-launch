@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-readonly API_URL='https://ll.thespacedevs.com/2.3.0/launches/upcoming/?lsp__id=121&status__ids=1,2,5,6,8&ordering=net&limit=2&mode=detailed'
+readonly API_URL='https://ll.thespacedevs.com/2.3.0/launches/upcoming/?lsp__id=121&status__ids=1,2,5,6,8&ordering=net&limit=3&mode=detailed'
 readonly CACHE_TTL_SECONDS=900
 readonly EXPIRES_AFTER_SECONDS=2400
 readonly RETRY_DELAY_SECONDS=120
@@ -47,7 +47,8 @@ flock -n 9 || exit 0
 now_seconds="$(date -u +%s)"
 if ! "$force_refresh" && [[ -f "$cache_path" ]]; then
     cache_mtime="$(stat -c %Y "$cache_path")"
-    if ((now_seconds - cache_mtime < CACHE_TTL_SECONDS)); then
+    if ((now_seconds - cache_mtime < CACHE_TTL_SECONDS)) \
+        && jq -e '.schemaVersion == 2' "$cache_path" >/dev/null 2>&1; then
         exit 0
     fi
 fi
@@ -82,6 +83,7 @@ printf '%s' "$payload" | jq --arg fetchedAt "$fetched_at" --arg expiresAt "$expi
             statusName: (.status.name // ""),
             site: ([.pad.name, .pad.location.name] | map(select(. != null and . != "")) | join(", ")),
             rocket: (.rocket.configuration.full_name // ""),
+            rocketFamily: (.rocket.configuration.name // ""),
             mission: (.mission.name // ""),
             referenceUrl: (([.info_urls[]? | select(.source == "spacex.com" and (.url | type == "string") and (.url | startswith("https://"))) | .url][0]) // "https://www.spacex.com/launches/"),
             outcomeConfirmed: false
@@ -90,11 +92,10 @@ printf '%s' "$payload" | jq --arg fetchedAt "$fetched_at" --arg expiresAt "$expi
       | select(.status.id == 1 or .status.id == 2 or .status.id == 5 or .status.id == 6 or .status.id == 8)
       | launch ] as $launches
     | {
-        schemaVersion: 1,
+        schemaVersion: 2,
         fetchedAt: $fetchedAt,
         expiresAt: $expiresAt,
-        next: ($launches[0] // null),
-        afterNext: ($launches[1] // null)
+        launches: $launches[:3]
       }
 ' > "$temporary_cache"
 

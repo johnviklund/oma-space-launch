@@ -1,5 +1,5 @@
 {
-  "count": 2,
+  "count": 3,
   "results": [
     {
       "id": "ad358a4d-c541-409b-9366-9c2f2da4aeb9",
@@ -8,7 +8,7 @@
       "status": { "id": 1, "name": "Go for Launch" },
       "net_precision": { "id": 1, "name": "Minute" },
       "pad": { "name": "Space Launch Complex 40", "location": { "name": "Cape Canaveral SFS, FL, USA" } },
-      "rocket": { "configuration": { "full_name": "Falcon 9 Block 5" } },
+      "rocket": { "configuration": { "name": "Falcon 9", "full_name": "Falcon 9 Block 5" } },
       "mission": { "name": "O3b mPower 11-13" },
       "info_urls": [{ "source": "spacex.com", "url": "https://www.spacex.com/launches/o3bmpower" }]
     },
@@ -19,9 +19,20 @@
       "status": { "id": 2, "name": "To Be Determined" },
       "net_precision": { "id": 3, "name": "Morning" },
       "pad": { "name": "Space Launch Complex 4E", "location": { "name": "Vandenberg SFB, CA, USA" } },
-      "rocket": { "configuration": { "full_name": "Falcon 9 Block 5" } },
+      "rocket": { "configuration": { "name": "Falcon 9", "full_name": "Falcon 9 Block 5" } },
       "mission": { "name": "USSF-259" },
       "info_urls": []
+    },
+    {
+      "id": "falcon-heavy-launch",
+      "name": "Falcon Heavy | ViaSat-4",
+      "net": "2026-09-18T16:30:00Z",
+      "status": { "id": 1, "name": "Go for Launch" },
+      "net_precision": { "id": 1, "name": "Minute" },
+      "pad": { "name": "Launch Complex 39A", "location": { "name": "Kennedy Space Center, FL, USA" } },
+      "rocket": { "configuration": { "name": "Falcon Heavy", "full_name": "Falcon Heavy" } },
+      "mission": { "name": "ViaSat-4" },
+      "info_urls": [{ "source": "spacex.com", "url": "https://www.spacex.com/launches/viasat-4" }]
     }
   ]
 }
