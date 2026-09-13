@@ -6,12 +6,12 @@ Status: complete
 
 ## Execution state
 
-- Current: Step 6 — reload, manually QA the panel, and update the README
+- Current: Step 6 — blocked: `omarchy-shell shell rescanPlugins` reports that the shell is not running; resume in a running Omarchy session
 - Writer: OpenAI · GPT-5.6 Terra (self-declared)
 - Baseline: manifest validation pass; tests pass (1/1 file); lint pass
 - Contract in flight: cache `schemaVersion: 2`; `launches: [≤3]`; each launch gains `rocketFamily`
 - Uncommitted planned files: none
-- Pending decisions: none
+- Pending decisions: a running Omarchy session is required for reload and manual QA
 - Step commits: Step 1 @ a911c4e; Step 2 @ 15fcd52; Step 3 @ 03366a1; Step 4 @ 6e8a3bc; Step 5 @ eb52b10
 
 ## Findings
@@ -78,6 +78,7 @@ Status: complete
 ## Deviations
 
 - Step 3 blocked (resolved by re-plan @ c0c6a5d): installed `rsvg-convert` rejects `-o /dev/null` (`Target file is not a regular file`), so the original check exited 1 before manifest validation. Check replaced per F10; SVGs untouched, still uncommitted.
+- Step 6 blocked: `omarchy-shell shell rescanPlugins` exited 0 but reported `omarchy-shell is not running`; the required reload and manual QA cannot run in this environment.
 
 ## TODO impacts
 
