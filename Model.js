@@ -20,12 +20,14 @@ function formatCountdown(ms) {
     return "T-" + pad(hours) + ":" + pad(minutes) + ":" + pad(seconds);
 }
 
-function formatNetDate(isoTime) {
+function formatNetDate(isoTime, utcCalendar = true) {
     const date = new Date(isoTime);
     if (isNaN(date.getTime()))
         return "TBD";
 
-    return ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"][date.getMonth()] + " " + date.getDate();
+    const month = utcCalendar ? date.getUTCMonth() : date.getMonth();
+    const day = utcCalendar ? date.getUTCDate() : date.getDate();
+    return ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"][month] + " " + day;
 }
 
 function formatLocalTime(isoTime) {
@@ -33,19 +35,20 @@ function formatLocalTime(isoTime) {
     return isNaN(date.getTime()) ? "TBD" : date.toLocaleString();
 }
 
-function formatWeekdayDate(isoTime) {
+function formatWeekdayDate(isoTime, utcCalendar = true) {
     const date = new Date(isoTime);
     if (isNaN(date.getTime()))
         return "TBD";
 
-    return ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][date.getDay()] + ", " + formatNetDate(isoTime);
+    const weekday = utcCalendar ? date.getUTCDay() : date.getDay();
+    return ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][weekday] + ", " + formatNetDate(isoTime, utcCalendar);
 }
 
 function formatAfterNext(launch) {
     if (!launch)
         return "";
 
-    const time = launch.timePrecision === "tbd" ? "TBD" : "NET " + formatWeekdayDate(launch.net);
+    const time = launch.timePrecision === "tbd" ? "TBD" : "NET " + formatWeekdayDate(launch.net, launch.timePrecision !== "exact");
     return launch.mission ? time + " · " + launch.mission : time;
 }
 
@@ -76,7 +79,7 @@ function deriveFreshState(next, nowMs) {
         return { state: "countdown", label: formatCountdown(launchTime - nowMs), stale: false };
 
     if (next.timePrecision === "net")
-        return { state: "net", label: "NET " + formatNetDate(next.net), stale: false };
+        return { state: "net", label: "NET " + formatNetDate(next.net, true), stale: false };
 
     return { state: "tbd", label: "TBD", stale: false };
 }
