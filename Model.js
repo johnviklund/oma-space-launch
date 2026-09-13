@@ -69,7 +69,7 @@ function deriveFreshState(next, nowMs) {
         return { state: "tbd", label: "TBD", stale: false };
 
     const launchTime = Date.parse(next.net);
-    if (!isNaN(launchTime) && launchTime <= nowMs)
+    if (next.statusId === 6 || (next.timePrecision === "exact" && !isNaN(launchTime) && launchTime <= nowMs))
         return { state: "launching", label: "Launching", stale: false };
 
     if (next.timePrecision === "exact" && !isNaN(launchTime))
