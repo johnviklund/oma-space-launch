@@ -1,7 +1,7 @@
 Command: workflow review richer-launch-panel
 Created: 2026-09-13
-Base: 40e1907a7a321be8fc0c5e53c385490c21231a83
-Inputs: .workflow/richer-launch-panel/plan.md @ fb6a763624baf7eda465d5468653edbbbfb84735
+Base: 22ce06720b22eac20b3566c9510514c22eefc4b8
+Inputs: .workflow/richer-launch-panel/plan.md @ fb6a763624baf7eda465d5468653edbbbfb84735; .workflow/richer-launch-panel/patch_plan.md @ 40e1907a7a321be8fc0c5e53c385490c21231a83
 Status: complete
 
 ## Coverage
@@ -38,7 +38,7 @@ Independence: cross-vendor (writer OpenAI · GPT-5.6 Terra per plan Execution st
 - Evidence: `Panel.qml:165` — `visible: index < root.launches.length - 1` inside a delegate declaring `required property var modelData` (`Panel.qml:85`). Qt 6 injects neither `index` nor roles as context properties once a delegate declares any required property. Reproduced offscreen with the same shape (`qml6` 6.11.2, scratchpad `probe.qml`): `ReferenceError: index is not defined` ×3, every separator `visible=true`. Adding `required property int index` to the delegate: last separator `visible=false`, no errors. The shell's own delegates all declare `required property int index` next to `modelData` (`Ui/Dropdown.qml:210-211`, `plugins/agents/Panel.qml:476-477`, …).
 - Effect: a trailing separator under the last entry (plan Step 4 says "`PanelSeparator` between entries"), plus three logged ReferenceErrors every time the Repeater rebuilds (each cache reload). No crash; cosmetic + log noise. Step 4's grep-count check could not see it; manual QA did not flag it.
 - Disposition: fix now — add `required property int index` to the outer delegate (`Panel.qml:85`); one line, no test file involved (QML has no harness here).
-- Resolved: —
+- Resolved: @ f584d71 (cycle 2)
 
 ## Pre-existing / environmental
 
@@ -51,3 +51,22 @@ Independence: cross-vendor (writer OpenAI · GPT-5.6 Terra per plan Execution st
 **Not ship as-is — one P2, fix now.** P0: 0 · P1: 0 · P2: 1 (C1-1) · P3: 0. Everything in scope is delivered, every non-goal untouched, the schema bump is clean end to end and the upgrade guard works. C1-1 is a one-line QML fix; patch plan in `patch_plan.md`, routed to `workflow execute richer-launch-panel`. Re-review (cycle 2) must re-run the offscreen probe shape against the fixed delegate and confirm the fix commit touched only `Panel.qml`.
 
 Notes for wrap (not findings): `DESIGN.md` reused-primitives list should drop `PanelSectionHeader` (no longer used) as well as adding `Image` + `MultiEffect`, alongside the plan's Product doc impacts.
+
+## Cycle 2 coverage (re-review of patch cycle 1 — C1-1 only)
+
+- [x] Code diff since cycle-1 Base (40e1907) is exactly the patch plan's scope: `git diff --name-only 40e1907..HEAD` (code only) → `Panel.qml`; fix commit f584d71 = `+required property int index` at `Panel.qml:86`, 1 insertion, 0 files under `tests/`
+- [x] Patch Step P1 check re-run post-fix → `1 2 validate ok`
+- [x] Offscreen probe (`qml6`, offscreen QPA, `QT_FORCE_STDERR_LOGGING=1`), same shape as cycle 1 — Repeater over a 3-element JS array, delegate with `required property var modelData`, separator inside a nested `Column` binding `visible: index < root.launches.length - 1`: pre-fix variant (no `index` property) still reproduces `ReferenceError: index is not defined` ×3 and `visible=true` ×3; fixed variant → `sep 0 visible=true`, `sep 1 visible=true`, `sep 2 visible=false`, zero errors. `Panel.qml:164-168` matches the fixed shape (separator is in the delegate's own component scope, not inside the inner row delegate)
+- [x] Regression: `tests/run` (validate + `bash -n` + `node --check` + 9/9 tests) exit 0; `omarchy plugin validate .` exit 0
+- [x] Scope guard: nothing else re-implemented (single-file, single-line code diff); `.workflow/` dependency grep → no hits, grep exit 1 (command present)
+Independence: cross-vendor (patch writer OpenAI · GPT-5 per patch_plan Execution state; reviewer Anthropic · Opus 5)
+
+## Cycle 2 findings
+
+- None.
+
+## Cycle 2 verdict
+
+**Ship as-is.** P0: 0 · P1: 0 · P2: 0 · P3: 0. C1-1 is resolved @ f584d71 (cycle 2): the one-line fix is exactly the patch plan's scope, touched no test file, and the offscreen probe that reproduced the bug in cycle 1 now shows the last separator hidden with no `ReferenceError`. Every cycle-1 finding is closed; no new findings. Entry to `workflow wrap`.
+
+Not gating, carried to wrap: the live-shell QA in `patch_plan.md` ("Human QA after the step") has not run from a sandbox with a running Omarchy Shell in either cycle — same environmental blocker as plan Step 6's first attempt; the probe above stands in for it. Wrap notes from cycle 1 (`DESIGN.md` primitives list: drop `PanelSectionHeader`, add `Image` + `MultiEffect`) still apply.
