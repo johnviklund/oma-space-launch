@@ -6,13 +6,13 @@ Status: complete
 
 ## Execution state
 
-- Current: Step 1 — complete; next Step 2
+- Current: Step 2 — complete; next Step 3
 - Writer: OpenAI · GPT-5.6 Terra (self-declared)
 - Baseline: manifest validation pass; tests pass (1/1 file); lint pass
 - Contract in flight: cache `schemaVersion: 2`; `launches: [≤3]`; each launch gains `rocketFamily`
 - Uncommitted planned files: none
 - Pending decisions: none
-- Step commits: Step 1 @ a911c4e
+- Step commits: Step 1 @ a911c4e; Step 2 @ 15fcd52
 
 ## Findings
 
@@ -34,9 +34,10 @@ Status: complete
   - Check: `S=$(mktemp -d) && scripts/fetch-launches.sh --from tests/fixtures/ll2-exact.json --cache "$S/c.json" && jq -e '.schemaVersion == 2 and (.launches | length) == 3 and .launches[2].rocketFamily == "Falcon Heavy" and (has("next") | not)' "$S/c.json" && scripts/fetch-launches.sh --from tests/fixtures/ll2-empty.json --cache "$S/e.json" && jq -e '.launches == []' "$S/e.json"` (pre: `false`, exit 1)
   - Skills: none
   - Writer: OpenAI · GPT-5.6 Terra
-- [ ] Step 2 — `Model.js` + tests: `parseCache` accepts only v2 with an array `launches`; `nextLaunch(cache)` → `launches[0]` or null; `deriveState` reads through it; `rocketArt(launch)` → `assets/falcon-9.svg` / `assets/falcon-heavy.svg` / `assets/starship.svg` by `rocketFamily`, else `""`; `formatAfterNext` deleted; tests: `cache()` helper builds v2, v1 rejected, `rocketArt` four cases, `nextLaunch` on empty (`Model.js`, `tests/model.test.mjs`) (F1, F2)
+- [x] Step 2 — `Model.js` + tests: `parseCache` accepts only v2 with an array `launches`; `nextLaunch(cache)` → `launches[0]` or null; `deriveState` reads through it; `rocketArt(launch)` → `assets/falcon-9.svg` / `assets/falcon-heavy.svg` / `assets/starship.svg` by `rocketFamily`, else `""`; `formatAfterNext` deleted; tests: `cache()` helper builds v2, v1 rejected, `rocketArt` four cases, `nextLaunch` on empty (`Model.js`, `tests/model.test.mjs`) (F1, F2)
   - Check: `node --test tests/model.test.mjs && grep -o 'rocketArt' Model.js tests/model.test.mjs | wc -l` (pre: 0, tests 7/7)
   - Skills: none
+  - Writer: OpenAI · GPT-5.6 Terra
 - [ ] Step 3 — Rocket art: three original monochrome silhouette SVGs (single fill, `viewBox`, no text/scripts/external refs, ≤ 4 KB each), rendered to PNG in the scratchpad for the human to eyeball before commit (`assets/falcon-9.svg`, `assets/falcon-heavy.svg`, `assets/starship.svg`) (F5, F6)
   - Check: `for f in assets/falcon-9.svg assets/falcon-heavy.svg assets/starship.svg; do xmllint --noout "$f" && rsvg-convert "$f" -o /dev/null; done && omarchy plugin validate .` (pre: "Can't open assets/falcon-9.svg", exit 4)
   - Skills: none
