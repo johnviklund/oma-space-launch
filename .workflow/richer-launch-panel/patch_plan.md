@@ -11,7 +11,8 @@ Status: complete
 - Baseline / step checks: manifest valid; tests 1/1 pass; lint pass
 - In flight: `Panel.qml` delegate now declares `required property int index`; no contract change
 - Step commits: Step P1 @ f584d71
-- Uncommitted files: this patch-plan receipt only; manual QML QA remains after shell reload
+- Manual QML QA: blocked in this environment; `omarchy-shell shell rescanPlugins` reports "omarchy-shell is not running"
+- Uncommitted files: this patch-plan receipt only
 
 ## Checklist
 
@@ -24,3 +25,7 @@ Status: complete
 ## Human QA after the step (not gating the check)
 
 Reload the shell (`omarchy-shell shell rescanPlugins` — needed a shell restart from the sandbox last time), open the panel with the live 3-launch cache: no separator under the last entry; shell log shows no `ReferenceError: index is not defined`.
+
+## Deviations
+
+- The required live-shell exercise could not run here because Omarchy Shell is not running; no code change was made to bypass it.
