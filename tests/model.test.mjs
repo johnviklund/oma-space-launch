@@ -40,6 +40,6 @@ test("formatters keep pill and preview text compact", () => {
     assert.equal(model.formatCountdown(3 * 86400000 + 4 * 3600000), "T-3d 4h");
     assert.equal(model.formatCountdown(4 * 3600000 + 12 * 60000 + 9000), "T-04:12:09");
     assert.equal(model.formatNetDate("2026-09-14T00:00:00Z"), "Sep 14");
-    assert.equal(model.formatAfterNext({ net: "2026-09-14T00:00:00Z", timePrecision: "net", mission: "Starlink" }), "NET Sep 14 · Starlink");
+    assert.equal(model.formatAfterNext({ net: "2026-09-14T00:00:00Z", timePrecision: "net", mission: "Starlink" }), "NET Mon, Sep 14 · Starlink");
     assert.notEqual(model.formatLocalTime("2026-09-14T00:00:00Z"), "TBD");
 });

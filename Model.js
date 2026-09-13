@@ -33,11 +33,19 @@ function formatLocalTime(isoTime) {
     return isNaN(date.getTime()) ? "TBD" : date.toLocaleString();
 }
 
+function formatWeekdayDate(isoTime) {
+    const date = new Date(isoTime);
+    if (isNaN(date.getTime()))
+        return "TBD";
+
+    return ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][date.getDay()] + ", " + formatNetDate(isoTime);
+}
+
 function formatAfterNext(launch) {
     if (!launch)
         return "";
 
-    const time = launch.timePrecision === "tbd" ? "TBD" : "NET " + formatNetDate(launch.net);
+    const time = launch.timePrecision === "tbd" ? "TBD" : "NET " + formatWeekdayDate(launch.net);
     return launch.mission ? time + " · " + launch.mission : time;
 }
 

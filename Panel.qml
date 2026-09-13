@@ -165,7 +165,7 @@ Panel {
                         spacing: Style.space(4)
 
                         PanelSectionHeader {
-                            text: "AFTER NEXT"
+                            text: "NEXT LAUNCH"
                             foreground: root.foreground
                         }
 
