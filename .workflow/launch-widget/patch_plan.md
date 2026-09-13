@@ -6,7 +6,7 @@ Status: complete
 
 ## Execution state
 
-- Current: Step 6 complete — next Step 7 (C1-5 panel launch-time label)
+- Current: Step 7 edited, awaiting required live stale-NET QA; `Panel.qml` is uncommitted
 - Seat: Default executor (Fix P1/P2/P3s) · approval auto · one step = one finding = one commit
 - Step 1 @ 09ee3f8
 - Step 2 @ d702b42
@@ -16,7 +16,7 @@ Status: complete
 - Step 6 @ 82f179f
 - Writer: OpenAI · GPT-5.6 Terra (self-declared)
 - Baseline: `omarchy plugin validate .`, `tests/run` (1/1), and lint all pass
-- In flight: no uncommitted code files; Step 7 pending; installed Omarchy skill approved as substitute
+- In flight: `Panel.qml` uncommitted; Step 7 pending; installed Omarchy skill approved as substitute
 - Rule: a step whose Disposition is `defer`/`wontfix` is skipped, not implemented
 
 ## Checklist
@@ -64,3 +64,4 @@ Status: complete
 ## Deviations
 
 - Step 6: required skill path was absent; user approved `/home/johnviklund/.codex/skills/omarchy/SKILL.md` as its substitute. Structural and manifest checks pass; user passed the live Tab-switch QA.
+- Step 7: structural check and manifest validation pass, but live stale-NET QA is blocked because `omarchy-shell` is not running in this session.
