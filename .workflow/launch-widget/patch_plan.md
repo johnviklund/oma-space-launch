@@ -6,14 +6,15 @@ Status: complete
 
 ## Execution state
 
-- Current: Step 3 complete — next Step 4 (C1-3 NET dates use UTC calendar)
+- Current: Step 4 complete — next Step 5 (C1-5 shared launch-time label)
 - Seat: Default executor (Fix P1/P2/P3s) · approval auto · one step = one finding = one commit
 - Step 1 @ 09ee3f8
 - Step 2 @ d702b42
 - Step 3 @ 761423f
+- Step 4 @ 5db6e3f
 - Writer: OpenAI · GPT-5.6 Terra (self-declared)
 - Baseline: `omarchy plugin validate .`, `tests/run` (1/1), and lint all pass
-- In flight: no uncommitted code files; pending Steps 4–7
+- In flight: no uncommitted code files; pending Steps 5–7
 - Rule: a step whose Disposition is `defer`/`wontfix` is skipped, not implemented
 
 ## Checklist
@@ -33,7 +34,7 @@ Status: complete
   - Skills: none
   - Disposition: fix now (recommended)
   - Writer: OpenAI · GPT-5.6 Terra
-- [ ] Step 4 — C1-3 (P2) NET calendar in UTC: `formatNetDate(isoTime, utcCalendar)` / `formatWeekdayDate(isoTime, utcCalendar)` use `getUTCMonth/getUTCDate/getUTCDay` when `utcCalendar` is true; `deriveFreshState`'s `net` branch passes `true`; `formatAfterNext` passes `launch.timePrecision !== "exact"`; exact-precision dates stay local. Existing tests stay untouched — they become the proof by running under a western and an eastern TZ (`Model.js`)
+- [x] Step 4 — C1-3 (P2) NET calendar in UTC: `formatNetDate(isoTime, utcCalendar)` / `formatWeekdayDate(isoTime, utcCalendar)` use `getUTCMonth/getUTCDate/getUTCDay` when `utcCalendar` is true; `deriveFreshState`'s `net` branch passes `true`; `formatAfterNext` passes `launch.timePrecision !== "exact"`; exact-precision dates stay local. Existing tests stay untouched — they become the proof by running under a western and an eastern TZ (`Model.js`)
   - Check: `TZ=America/Los_Angeles node --test tests/model.test.mjs && TZ=Pacific/Auckland node --test tests/model.test.mjs && node --test tests/model.test.mjs` (pre: LA run fails 2 of 4)
   - Skills: none
   - Disposition: fix now (recommended)
