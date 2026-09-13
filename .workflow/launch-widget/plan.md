@@ -6,13 +6,14 @@ Status: complete
 
 ## Execution state
 
-- Current: Step 3 — Model + tests · pending
+- Current: Step 4 — Bar widget · pending
 - Step 1 @ a77f487
 - Step 2 @ 2b32154
+- Step 3 @ 299263e
 - Writer: OpenAI · GPT-5.6 Terra (self-declared)
 - Baseline: `omarchy plugin validate .` exit 1 (manifest absent); `tests/run` exit 127 (absent)
-- Check: Step 2 passed — normalized `LaunchCacheV1` has schema 1, exact precision, and SpaceX URL
-- In flight: `LaunchCacheV1`, schemaVersion 1; `Model.js` exports parse/derive/format functions; no uncommitted files
+- Check: Step 3 passed — 4 model test groups cover every pill state and the expiry boundary
+- In flight: `LaunchCacheV1`, schemaVersion 1; QML imports `Model.js`; no uncommitted files
 
 ## Findings
 
@@ -41,9 +42,10 @@ Status: complete
   - Check: `bash -n scripts/fetch-launches.sh && scripts/fetch-launches.sh --from tests/fixtures/ll2-exact.json --cache "$PWD/.cache-test.json" && jq -e '.schemaVersion == 1 and .next.timePrecision == "exact" and (.next.referenceUrl | startswith("https://www.spacex.com/"))' .cache-test.json` (pre: exit 127)
   - Skills: none
   - Writer: OpenAI · GPT-5.6 Terra
-- [ ] Step 3 — `Model.js` + `tests/model.test.mjs`: `parseCache(text)`, `deriveState(cache, nowMs)` → `{state: loading|stale|launching|countdown|net|tbd, label, stale}` with precedence Loading > Stale > Launching > precision, `formatCountdown(ms)` → `T-3d 4h`/`T-04:12:09`, `formatNetDate`, `formatLocalTime` (system tz), after-next preview line; tests cover every state incl. `expiresAt` boundary and null `next` (`Model.js`, `tests/model.test.mjs`) (F1, F6)
+- [x] Step 3 — `Model.js` + `tests/model.test.mjs`: `parseCache(text)`, `deriveState(cache, nowMs)` → `{state: loading|stale|launching|countdown|net|tbd, label, stale}` with precedence Loading > Stale > Launching > precision, `formatCountdown(ms)` → `T-3d 4h`/`T-04:12:09`, `formatNetDate`, `formatLocalTime` (system tz), after-next preview line; tests cover every state incl. `expiresAt` boundary and null `next` (`Model.js`, `tests/model.test.mjs`) (F1, F6)
   - Check: `node --test tests/` (pre: exit 1 "Could not find 'tests/'")
   - Skills: none
+  - Writer: OpenAI · GPT-5.6 Terra
 - [ ] Step 4 — `BarWidget.qml`: Clock/Weather host shape (F7), `FileView` on the cache, `Timer` (20 min, `triggeredOnStart`) + `Process` running the helper, 1 s tick under 1 h else 1 min, label from `Model.deriveState`, `dimmed: stale`, left click `togglePanel()`, middle click force refresh, `IpcHandler` target `oma-space-launch` (`BarWidget.qml`) (F5, F7, F8, F10)
   - Check: `omarchy plugin validate . && grep -o 'moduleName: "oma-space-launch"' BarWidget.qml | wc -l && grep -o 'dimmed: ' BarWidget.qml | wc -l && grep -o 'FileView {' BarWidget.qml | wc -l` (pre: 0 0 0)
   - Skills: none
