@@ -37,7 +37,9 @@ ambient in their bar rather than something they have to go fetch.
 
 ## Current state
 
-Pre-implementation. PRD complete and settled (2026-09-13); no code written yet.
+v1 shipped (2026-09-13). Bar pill, detail panel, and the Launch Library 2 polling helper are all
+implemented and installed as a community plugin (`oma-space-launch`); all v1 workflows (F1–F3) are
+live and passed manual QA in a running Omarchy session.
 
 ## Desired end state (v1)
 
@@ -104,9 +106,10 @@ Pre-implementation. PRD complete and settled (2026-09-13); no code written yet.
 ## Dependencies / assumptions
 
 - A public, unauthenticated SpaceX launch-schedule data source exposing net time, pad/site,
-  rocket configuration, mission name, and a reference URL per launch. Confirmed available via The
-  Space Devs' Launch Library 2 API (`ll.thespacedevs.com`) as of 2026-09-13 — exact provider
-  selection/wiring is a planning-phase decision, not re-litigated here.
+  rocket configuration, mission name, and a reference URL per launch. Provided by The Space Devs'
+  Launch Library 2 API (`ll.thespacedevs.com`, `lsp__id=121`), polled every 20 minutes by
+  `scripts/fetch-launches.sh` in `mode=detailed`; the shared unauthenticated rate limit (15 req/h)
+  bounds this at a worst case of 6 req/h.
 - The Omarchy plugin runtime (Quickshell/QML bar-widget + panel, `manifest.json` contract) is
   already installed on the target machine — the same runtime the built-in Clock and Weather
   widgets use.

@@ -5,10 +5,10 @@ Phased initiatives to implement `PRODUCT.md`. Each item is sized to one future w
 
 ## v1
 
-- [ ] **Launch countdown bar-widget + panel** — the full PRD scope as one run: manifest scaffold,
+- [x] **Launch countdown bar-widget + panel** — the full PRD scope as one run: manifest scaffold,
       Launch Library 2 data fetch, pill state derivation (`countdown`/`NET`/`TBD`/`Launching`),
       detail panel (next launch + after-next preview), rollover on outcome confirmation. Covers
-      all of `PRODUCT.md`'s desired end state. Start with `workflow brainstorm launch-widget`.
+      all of `PRODUCT.md`'s desired end state. Shipped 2026-09-13 — `.workflow/launch-widget/`.
 
 ## v2 (not yet scoped — see `PRODUCT.md` anti-goals)
 

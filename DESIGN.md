@@ -17,8 +17,9 @@ Everything below is content/structure this plugin owns inside the inherited shel
 - `NET <date>` — window known, no exact time.
 - `TBD` — no date/time set.
 - `Launching` — T-0 reached, outcome not yet confirmed.
-- `Stale` — last data fetch failed; last-known state shown with a visible stale marker (e.g. a
-  dimmed pill or trailing indicator), never silently presented as current.
+- `Stale` — last data fetch failed; last-known state shown with a visible stale marker (`dimmed:
+  true` on the pill via `Ui/WidgetButton`, and dimmed text in the panel), never silently presented
+  as current.
 
 **Panel layout** (top to bottom):
 1. Next launch: local time (viewer's system timezone), site/pad, rocket name + variant, mission
@@ -36,5 +37,7 @@ the data source's own generic reference URL; otherwise SpaceX's general launches
 
 ## Open design questions
 
-None at bootstrap. Concrete QML structure (which existing Clock/Weather components to mirror or
-share) is a Phase 2 planning decision, not a design-doc decision.
+None. `BarWidget.qml` mirrors the Clock host shape verbatim (`opened`/`open()`/`close()`/
+`popoutSwitchClosing`/`closeForPopoutSwitch()`/`injectPanel()`); `Panel.qml` reuses `qs.Ui`
+primitives (`KeyboardPanel`, `PanelHero`, `PanelSectionHeader`, `PanelSeparator`,
+`PanelKeyCatcher`) with no shared code between plugins.

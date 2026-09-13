@@ -9,8 +9,8 @@ Status: drafting
 - [x] 1. Final checks: build/type-check/test suite — `omarchy plugin validate .` exit 0; `tests/run` 7/7 pass
 - [x] 2. Grep for leftover shortcuts — clean (no TODO: Implement / NotImplementedError / placeholder / real implementation / `...`)
 - [ ] 3. Commit remaining receipt changes
-- [ ] 4. Route learnings.md (none present — no-op)
-- [ ] 5. Product-doc truth (PRODUCT.md, DESIGN.md, ROADMAP.md)
+- [x] 4. Route learnings.md — no `learnings.md` file exists for this run; no-op
+- [x] 5. Product-doc truth — PRODUCT.md (Current state → v1 shipped; Dependencies → LL2 provider resolved), DESIGN.md (Stale marker made concrete; open design questions resolved), ROADMAP.md (v1 item checked off)
 - [ ] 6. TODO hygiene
 - [ ] 7. Eval deposit (check learnings.md for [durable→eval] lines — none present)
 - [ ] 8. WORKLOG.md entry
