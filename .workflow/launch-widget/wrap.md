@@ -1,0 +1,17 @@
+Command: workflow wrap launch-widget
+Created: 2026-09-13
+Base: 80b9adf6dbe64e83fd9670c6c7ffab2b8fbb4c7f
+Inputs: review.md @ 80b9adf6dbe64e83fd9670c6c7ffab2b8fbb4c7f
+Status: drafting
+
+## Steps
+
+- [x] 1. Final checks: build/type-check/test suite — `omarchy plugin validate .` exit 0; `tests/run` 7/7 pass
+- [x] 2. Grep for leftover shortcuts — clean (no TODO: Implement / NotImplementedError / placeholder / real implementation / `...`)
+- [ ] 3. Commit remaining receipt changes
+- [ ] 4. Route learnings.md (none present — no-op)
+- [ ] 5. Product-doc truth (PRODUCT.md, DESIGN.md, ROADMAP.md)
+- [ ] 6. TODO hygiene
+- [ ] 7. Eval deposit (check learnings.md for [durable→eval] lines — none present)
+- [ ] 8. WORKLOG.md entry
+- [ ] 9. Archive the run
