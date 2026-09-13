@@ -11,7 +11,7 @@ Status: drafting
 - [ ] 3. Commit remaining receipt changes
 - [x] 4. Route learnings.md — no `learnings.md` file exists for this run; no-op
 - [x] 5. Product-doc truth — PRODUCT.md (Current state → v1 shipped; Dependencies → LL2 provider resolved), DESIGN.md (Stale marker made concrete; open design questions resolved), ROADMAP.md (v1 item checked off)
-- [ ] 6. TODO hygiene
-- [ ] 7. Eval deposit (check learnings.md for [durable→eval] lines — none present)
-- [ ] 8. WORKLOG.md entry
+- [x] 6. TODO hygiene — archived both resolved open questions with pointers to `.workflow/launch-widget/`
+- [x] 7. Eval deposit — no `learnings.md`, no `[durable→eval]` lines; nothing to deposit
+- [x] 8. WORKLOG.md entry — added
 - [ ] 9. Archive the run
