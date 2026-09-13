@@ -6,13 +6,13 @@ Status: complete
 
 ## Execution state
 
-- Current: Step 5 — update the pill's cache lookup and release version
+- Current: Step 6 — reload, manually QA the panel, and update the README
 - Writer: OpenAI · GPT-5.6 Terra (self-declared)
 - Baseline: manifest validation pass; tests pass (1/1 file); lint pass
 - Contract in flight: cache `schemaVersion: 2`; `launches: [≤3]`; each launch gains `rocketFamily`
 - Uncommitted planned files: none
 - Pending decisions: none
-- Step commits: Step 1 @ a911c4e; Step 2 @ 15fcd52; Step 3 @ 03366a1; Step 4 @ 6e8a3bc
+- Step commits: Step 1 @ a911c4e; Step 2 @ 15fcd52; Step 3 @ 03366a1; Step 4 @ 6e8a3bc; Step 5 @ eb52b10
 
 ## Findings
 
@@ -47,9 +47,10 @@ Status: complete
   - Check: `grep -o 'Repeater {' Panel.qml | wc -l && grep -o 'MultiEffect {' Panel.qml | wc -l && grep -o 'rocketArt(' Panel.qml | wc -l && grep -o 'formatAfterNext' Panel.qml Model.js | wc -l` (pre: 1 0 0 2 — post: 2 1 ≥1 0)
   - Skills: none
   - Writer: OpenAI · GPT-5.6 Terra
-- [ ] Step 5 — Mechanical follow-through: `BarWidget.qml` tick-interval reads `Model.nextLaunch(root.cache)`; `manifest.json` version `1.1.0` (`BarWidget.qml`, `manifest.json`) (F2)
+- [x] Step 5 — Mechanical follow-through: `BarWidget.qml` tick-interval reads `Model.nextLaunch(root.cache)`; `manifest.json` version `1.1.0` (`BarWidget.qml`, `manifest.json`) (F2)
   - Check: `grep -o 'nextLaunch(' BarWidget.qml | wc -l && grep -o 'cache.next' BarWidget.qml Panel.qml Model.js | wc -l && jq -r .version manifest.json` (pre: 0 4 1.0.0 — post: 1 0 1.1.0)
   - Skills: none
+  - Writer: OpenAI · GPT-5.6 Terra
 - [ ] Step 6 — Reload + manual QA + README: `omarchy-shell shell rescanPlugins`; with the old v1 cache still on disk confirm the pill leaves `Loading` within one tick (F3); `--from` fixtures into the live cache path: `ll2-exact` → three entries, Falcon 9 ×2 + Falcon Heavy art, links open; `ll2-net` → one entry, Falcon 1 shows no art; `ll2-tbd` → Starship art, TBD time; art readable in a light and a dark theme; stale dimming still covers all entries; then `--force` back to live; README's offline-check paragraph mentions the 3-launch fixtures (`README.md`) (F3, F5, F6, F9)
   - Check: `tests/run && jq -e '.schemaVersion == 2 and (.launches | length) >= 1' "${XDG_CACHE_HOME:-$HOME/.cache}/oma-space-launch/launches.json"` (pre: tests pass, `false`, exit 1)
   - Skills: /home/johnviklund/.claude/skills/omarchy/SKILL.md
