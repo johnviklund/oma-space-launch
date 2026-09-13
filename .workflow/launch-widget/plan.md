@@ -6,14 +6,15 @@ Status: complete
 
 ## Execution state
 
-- Current: Step 4 — Bar widget · pending
+- Current: Step 5 — Detail panel · pending
 - Step 1 @ a77f487
 - Step 2 @ 2b32154
 - Step 3 @ 299263e
+- Step 4 @ b7a2df6
 - Writer: OpenAI · GPT-5.6 Terra (self-declared)
 - Baseline: `omarchy plugin validate .` exit 1 (manifest absent); `tests/run` exit 127 (absent)
-- Check: Step 3 passed — 4 model test groups cover every pill state and the expiry boundary
-- In flight: `LaunchCacheV1`, schemaVersion 1; QML imports `Model.js`; no uncommitted files
+- Check: Step 4 passed — manifest validates; module, stale marker, and FileView each appear once
+- In flight: `LaunchCacheV1`, schemaVersion 1; `Panel.qml` receives bar-widget host properties; no uncommitted files
 
 ## Findings
 
@@ -46,9 +47,10 @@ Status: complete
   - Check: `node --test tests/` (pre: exit 1 "Could not find 'tests/'")
   - Skills: none
   - Writer: OpenAI · GPT-5.6 Terra
-- [ ] Step 4 — `BarWidget.qml`: Clock/Weather host shape (F7), `FileView` on the cache, `Timer` (20 min, `triggeredOnStart`) + `Process` running the helper, 1 s tick under 1 h else 1 min, label from `Model.deriveState`, `dimmed: stale`, left click `togglePanel()`, middle click force refresh, `IpcHandler` target `oma-space-launch` (`BarWidget.qml`) (F5, F7, F8, F10)
+- [x] Step 4 — `BarWidget.qml`: Clock/Weather host shape (F7), `FileView` on the cache, `Timer` (20 min, `triggeredOnStart`) + `Process` running the helper, 1 s tick under 1 h else 1 min, label from `Model.deriveState`, `dimmed: stale`, left click `togglePanel()`, middle click force refresh, `IpcHandler` target `oma-space-launch` (`BarWidget.qml`) (F5, F7, F8, F10)
   - Check: `omarchy plugin validate . && grep -o 'moduleName: "oma-space-launch"' BarWidget.qml | wc -l && grep -o 'dimmed: ' BarWidget.qml | wc -l && grep -o 'FileView {' BarWidget.qml | wc -l` (pre: 0 0 0)
   - Skills: none
+  - Writer: OpenAI · GPT-5.6 Terra
 - [ ] Step 5 — `Panel.qml`: `KeyboardPanel` + `PanelHero` (pill label as title, mission as meta), rows local time / site / rocket / mission / reference link (`omarchy-launch-browser`), `PanelSeparator`, after-next preview (date-or-NET + mission only), uncertainty and stale rendering per DESIGN.md §Panel layout 3–4, Esc/Tab via `PanelKeyCatcher` (`Panel.qml`) (F7, F8, F9)
   - Check: `grep -o 'PanelSeparator {' Panel.qml | wc -l && grep -o 'omarchy-launch-browser' Panel.qml | wc -l` (pre: 0 0)
   - Skills: none
