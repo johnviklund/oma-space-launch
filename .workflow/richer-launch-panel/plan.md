@@ -6,13 +6,13 @@ Status: complete
 
 ## Execution state
 
-- Current: Step 3 — check amended by re-plan @ c0c6a5d (F10); resume Step 3: run the check, eyeball the PNGs, commit the SVGs
+- Current: Step 4 — replace the panel's one-entry + preview layout with the three-entry repeater
 - Writer: OpenAI · GPT-5.6 Terra (self-declared)
 - Baseline: manifest validation pass; tests pass (1/1 file); lint pass
 - Contract in flight: cache `schemaVersion: 2`; `launches: [≤3]`; each launch gains `rocketFamily`
-- Uncommitted planned files: `assets/falcon-9.svg`, `assets/falcon-heavy.svg`, `assets/starship.svg` — drafted, pass the amended check, awaiting human eyeball
+- Uncommitted planned files: none
 - Pending decisions: none
-- Step commits: Step 1 @ a911c4e; Step 2 @ 15fcd52
+- Step commits: Step 1 @ a911c4e; Step 2 @ 15fcd52; Step 3 @ 03366a1
 
 ## Findings
 
@@ -39,9 +39,10 @@ Status: complete
   - Check: `node --test tests/model.test.mjs && grep -o 'rocketArt' Model.js tests/model.test.mjs | wc -l` (pre: 0, tests 7/7)
   - Skills: none
   - Writer: OpenAI · GPT-5.6 Terra
-- [ ] Step 3 — Rocket art: three original monochrome silhouette SVGs (single fill, `viewBox`, no text/scripts/external refs, ≤ 4 KB each), rendered to PNG in a temp dir for the human to eyeball before commit (`assets/falcon-9.svg`, `assets/falcon-heavy.svg`, `assets/starship.svg`) (F5, F6, F10)
+- [x] Step 3 — Rocket art: three original monochrome silhouette SVGs (single fill, `viewBox`, no text/scripts/external refs, ≤ 4 KB each), rendered to PNG in a temp dir for the human to eyeball before commit (`assets/falcon-9.svg`, `assets/falcon-heavy.svg`, `assets/starship.svg`) (F5, F6, F10)
   - Check: `( set -e; S=$(mktemp -d); for f in assets/falcon-9.svg assets/falcon-heavy.svg assets/starship.svg; do xmllint --noout "$f"; [ "$(wc -c < "$f")" -le 4096 ]; rsvg-convert -w 200 -b '#202830' "$f" -o "$S/$(basename "$f" .svg).png"; done; omarchy plugin validate .; echo "PNGs: $S" )` (pre: on a clean tree "Can't open assets/falcon-9.svg", exit 4; with the drafted uncommitted SVGs in place exit 0, 297/529/323 bytes, PNGs written)
   - Skills: none
+  - Writer: OpenAI · GPT-5.6 Terra
 - [ ] Step 4 — `Panel.qml`: `launches` from cache; hero unchanged (label title, `launches[0].mission` meta); the single-entry block, `PanelSeparator` and "NEXT LAUNCH" preview replaced by a `Repeater` over `launches` — each delegate: background `Image` (`Qt.resolvedUrl(Model.rocketArt(launch))`, `PreserveAspectFit` on the right edge, `sourceSize` × `Screen.devicePixelRatio`, `layer.enabled`, `MultiEffect` tinted to `root.foreground`, opacity 0.12, hidden when `rocketArt` is `""`), LOCAL TIME/SITE/ROCKET/MISSION rows via `Model.launchTimeLabel(launch, nowMs)`, its own "Open SpaceX launch page" link, `PanelSeparator` between entries; "No scheduled launch" and stale dimming as before (`Panel.qml`) (F2, F5–F8)
   - Check: `grep -o 'Repeater {' Panel.qml | wc -l && grep -o 'MultiEffect {' Panel.qml | wc -l && grep -o 'rocketArt(' Panel.qml | wc -l && grep -o 'formatAfterNext' Panel.qml Model.js | wc -l` (pre: 1 0 0 2 — post: 2 1 ≥1 0)
   - Skills: none
