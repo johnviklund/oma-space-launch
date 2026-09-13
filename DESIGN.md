@@ -22,15 +22,19 @@ Everything below is content/structure this plugin owns inside the inherited shel
   as current.
 
 **Panel layout** (top to bottom):
-1. Next launch: local time (viewer's system timezone), site/pad, rocket name + variant, mission
-   name, reference link.
-2. Lighter divider/section: launch-after-next preview — date/NET + mission name only (no site,
-   rocket, or link for this entry).
-3. When pill state is `NET`/`TBD`/`Launching`, the corresponding field(s) in step 1 reflect that
+1. Up to three entries, one per upcoming launch (data-source order), each with the same uniform
+   shape: local time (viewer's system timezone), site/pad, rocket name + variant, mission name,
+   reference link, separated by `PanelSeparator`. Panel height grows to fit all entries (no fixed
+   height, no scrolling beyond the host's existing `Flickable`).
+2. Each entry's background is a faded silhouette image themed to that launch's rocket family
+   (`assets/<family>.svg` for Falcon 9 / Falcon Heavy / Starship — the current SpaceX fleet;
+   `Image` + `MultiEffect` tinted to `root.foreground` at ~0.12 opacity, absent when the rocket
+   isn't in that set). No site-themed or photographic art.
+3. When an entry's pill-equivalent state is `NET`/`TBD`/`Launching`, its own fields reflect that
    same uncertainty (e.g. show `NET <date>` instead of a fabricated exact time) rather than
    hiding the section.
-4. When pill state is `Stale`, the panel shows the last-known data with the same stale marker as
-   the pill, rather than hiding the panel or silently presenting old data as fresh.
+4. When pill state is `Stale`, the panel shows the last-known data for all entries with the same
+   stale marker as the pill, rather than hiding the panel or silently presenting old data as fresh.
 
 **Reference link fallback:** launch-specific page when the data source provides one; otherwise
 the data source's own generic reference URL; otherwise SpaceX's general launches page.
@@ -39,5 +43,7 @@ the data source's own generic reference URL; otherwise SpaceX's general launches
 
 None. `BarWidget.qml` mirrors the Clock host shape verbatim (`opened`/`open()`/`close()`/
 `popoutSwitchClosing`/`closeForPopoutSwitch()`/`injectPanel()`); `Panel.qml` reuses `qs.Ui`
-primitives (`KeyboardPanel`, `PanelHero`, `PanelSectionHeader`, `PanelSeparator`,
-`PanelKeyCatcher`) with no shared code between plugins.
+primitives (`KeyboardPanel`, `PanelHero`, `PanelSeparator`, `PanelKeyCatcher`, plus `Image` +
+`MultiEffect` (`QtQuick.Effects`) for the per-entry rocket-family tint) with no shared code
+between plugins. `PanelSectionHeader` is no longer used (the after-next-only preview it
+introduced was replaced by the uniform 3-entry list).

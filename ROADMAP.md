@@ -10,6 +10,13 @@ Phased initiatives to implement `PRODUCT.md`. Each item is sized to one future w
       detail panel (next launch + after-next preview), rollover on outcome confirmation. Covers
       all of `PRODUCT.md`'s desired end state. Shipped 2026-09-13 — `.workflow/launch-widget/`.
 
+## v1.1
+
+- [x] **Richer launch panel** — panel expands from one full launch + a bare after-next preview to
+      three full entries (local time/NET/TBD, site/pad, rocket + variant, mission, link), each
+      against a faded rocket-family silhouette background. Shipped 2026-09-13 —
+      `.workflow/richer-launch-panel/`.
+
 ## v2 (not yet scoped — see `PRODUCT.md` anti-goals)
 
 - [ ] Configurable pre-launch desktop notifications (lead time, on/off) — explicitly deferred by
