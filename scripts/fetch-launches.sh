@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-readonly API_URL='https://ll.thespacedevs.com/2.3.0/launches/upcoming/?lsp__id=121&status__ids=1,2,5,6,8&ordering=net&limit=3&mode=detailed'
+readonly API_URL='https://ll.thespacedevs.com/2.3.0/launches/upcoming/?lsp__id=121&status__ids=1,2,5,6,8&ordering=net&limit=4&mode=detailed'
 readonly CACHE_TTL_SECONDS=900
 readonly EXPIRES_AFTER_SECONDS=2400
 readonly RETRY_DELAY_SECONDS=120
@@ -95,7 +95,7 @@ printf '%s' "$payload" | jq --arg fetchedAt "$fetched_at" --arg expiresAt "$expi
         schemaVersion: 2,
         fetchedAt: $fetchedAt,
         expiresAt: $expiresAt,
-        launches: $launches[:3]
+        launches: $launches[:4]
       }
 ' > "$temporary_cache"
 

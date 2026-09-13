@@ -22,14 +22,19 @@ Everything below is content/structure this plugin owns inside the inherited shel
   as current.
 
 **Panel layout** (top to bottom):
-1. Up to three entries, one per upcoming launch (data-source order), each with the same uniform
-   shape: local time (viewer's system timezone), site/pad, rocket name + variant, mission name,
-   reference link, separated by `PanelSeparator`. Panel height grows to fit all entries (no fixed
+1. One detailed entry for the next launch only: local time (viewer's system timezone), site/pad,
+   rocket name + variant, mission name, reference link, against a launch photo themed to that
+   launch's rocket family (`assets/F9_2_mobile.jpg` for Falcon 9, `assets/FH_8_mobile.jpg` for
+   Falcon Heavy, `assets/starship.jpeg` for Starship — the current SpaceX fleet) rendered as a
+   full-panel background (behind the hero, the next-launch detail, and the upcoming list alike),
+   at ~0.35 opacity, desaturated to grayscale via `MultiEffect`, covering the full panel height. It
+   is fully hidden (matching `Color.popups.background`) across its left half, then fades in across
+   the right half to fully visible at the right edge. No image when the rocket isn't in that set.
+2. Below a `PanelSeparator`, an "UPCOMING" section listing up to three further scheduled launches
+   (data-source order) as single-line entries with generous row spacing: a short local date + time
+   (or `NET <date>`/`TBD`), rocket name, and mission — `<date> <time> · <rocket> · <mission>` — no
+   site/pad or reference link, no background art. Panel height grows to fit all entries (no fixed
    height, no scrolling beyond the host's existing `Flickable`).
-2. Each entry's background is a faded silhouette image themed to that launch's rocket family
-   (`assets/<family>.svg` for Falcon 9 / Falcon Heavy / Starship — the current SpaceX fleet;
-   `Image` + `MultiEffect` tinted to `root.foreground` at ~0.12 opacity, absent when the rocket
-   isn't in that set). No site-themed or photographic art.
 3. When an entry's pill-equivalent state is `NET`/`TBD`/`Launching`, its own fields reflect that
    same uncertainty (e.g. show `NET <date>` instead of a fabricated exact time) rather than
    hiding the section.
@@ -43,7 +48,6 @@ the data source's own generic reference URL; otherwise SpaceX's general launches
 
 None. `BarWidget.qml` mirrors the Clock host shape verbatim (`opened`/`open()`/`close()`/
 `popoutSwitchClosing`/`closeForPopoutSwitch()`/`injectPanel()`); `Panel.qml` reuses `qs.Ui`
-primitives (`KeyboardPanel`, `PanelHero`, `PanelSeparator`, `PanelKeyCatcher`, plus `Image` +
-`MultiEffect` (`QtQuick.Effects`) for the per-entry rocket-family tint) with no shared code
-between plugins. `PanelSectionHeader` is no longer used (the after-next-only preview it
-introduced was replaced by the uniform 3-entry list).
+primitives (`KeyboardPanel`, `PanelHero`, `PanelSeparator`, `PanelSectionHeader`,
+`PanelKeyCatcher`, plus `Image` + `MultiEffect` (`QtQuick.Effects`) for the next launch's
+background photo grayscale/fade) with no shared code between plugins.

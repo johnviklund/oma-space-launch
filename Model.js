@@ -17,11 +17,11 @@ function rocketArt(launch) {
 
     switch (launch.rocketFamily) {
     case "Falcon 9":
-        return "assets/falcon-9.svg";
+        return "assets/F9_2_mobile.jpg";
     case "Falcon Heavy":
-        return "assets/falcon-heavy.svg";
+        return "assets/FH_8_mobile.jpg";
     case "Starship":
-        return "assets/starship.svg";
+        return "assets/starship.jpeg";
     default:
         return "";
     }
@@ -53,6 +53,11 @@ function formatNetDate(isoTime, utcCalendar = true) {
 function formatLocalTime(isoTime) {
     const date = new Date(isoTime);
     return isNaN(date.getTime()) ? "TBD" : date.toLocaleString();
+}
+
+function formatShortTime(isoTime) {
+    const date = new Date(isoTime);
+    return isNaN(date.getTime()) ? "TBD" : pad(date.getHours()) + ":" + pad(date.getMinutes());
 }
 
 function launchTimeLabel(next, nowMs) {
@@ -101,6 +106,23 @@ function deriveFreshState(next, nowMs) {
         return { state: "net", label: "NET " + formatNetDate(next.net, true), stale: false };
 
     return { state: "tbd", label: "TBD", stale: false };
+}
+
+function formatUpcomingLine(launch) {
+    if (!launch)
+        return "";
+
+    const time = launch.timePrecision === "exact" ? formatNetDate(launch.net, false) + " " + formatShortTime(launch.net)
+        : launch.timePrecision === "net" ? "NET " + formatNetDate(launch.net)
+        : "TBD";
+
+    const parts = [time];
+    if (launch.rocket)
+        parts.push(launch.rocket);
+    if (launch.mission)
+        parts.push(launch.mission);
+
+    return parts.join(" · ");
 }
 
 function pad(number) {

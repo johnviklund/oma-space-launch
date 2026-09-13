@@ -5,7 +5,7 @@ import vm from "node:vm";
 
 const model = vm.runInThisContext(`(() => {
 ${readFileSync(new URL("../Model.js", import.meta.url), "utf8")}
-return { parseCache, nextLaunch, rocketArt, deriveState, formatCountdown, formatNetDate, formatLocalTime, launchTimeLabel };
+return { parseCache, nextLaunch, rocketArt, deriveState, formatCountdown, formatNetDate, formatLocalTime, launchTimeLabel, formatUpcomingLine };
 })()`);
 
 const expiresAt = "2026-09-14T00:00:00Z";
@@ -30,9 +30,9 @@ test("nextLaunch returns the first launch or null", () => {
 });
 
 test("rocketArt maps supported rocket families", () => {
-    assert.equal(model.rocketArt({ rocketFamily: "Falcon 9" }), "assets/falcon-9.svg");
-    assert.equal(model.rocketArt({ rocketFamily: "Falcon Heavy" }), "assets/falcon-heavy.svg");
-    assert.equal(model.rocketArt({ rocketFamily: "Starship" }), "assets/starship.svg");
+    assert.equal(model.rocketArt({ rocketFamily: "Falcon 9" }), "assets/F9_2_mobile.jpg");
+    assert.equal(model.rocketArt({ rocketFamily: "Falcon Heavy" }), "assets/FH_8_mobile.jpg");
+    assert.equal(model.rocketArt({ rocketFamily: "Starship" }), "assets/starship.jpeg");
     assert.equal(model.rocketArt({ rocketFamily: "Falcon 1" }), "");
 });
 
@@ -71,6 +71,17 @@ test("launchTimeLabel preserves launch-time uncertainty", () => {
     assert.equal(model.launchTimeLabel(launchingLaunch, now), "Launching");
     assert.equal(model.launchTimeLabel(exactLaunch, now), model.formatLocalTime(exactLaunch.net));
     assert.equal(model.launchTimeLabel(netLaunch, now), "NET Sep 15");
+});
+
+test("formatUpcomingLine renders a compact date, time, rocket, and mission line", () => {
+    const exact = { net: "2026-09-14T15:30:00Z", timePrecision: "exact", rocket: "Falcon 9 Block 5", mission: "USSF-259" };
+    const exactDate = new Date("2026-09-14T15:30:00Z");
+    const expectedTime = String(exactDate.getHours()).padStart(2, "0") + ":" + String(exactDate.getMinutes()).padStart(2, "0");
+
+    assert.equal(model.formatUpcomingLine(null), "");
+    assert.equal(model.formatUpcomingLine(exact), model.formatNetDate(exact.net, false) + " " + expectedTime + " · Falcon 9 Block 5 · USSF-259");
+    assert.equal(model.formatUpcomingLine({ net: "2026-09-15T00:00:00Z", timePrecision: "net", rocket: "Falcon Heavy", mission: "ViaSat-4" }), "NET Sep 15 · Falcon Heavy · ViaSat-4");
+    assert.equal(model.formatUpcomingLine({ net: null, timePrecision: "tbd", rocket: "", mission: "" }), "TBD");
 });
 
 test("formatters keep pill text compact", () => {

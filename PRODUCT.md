@@ -7,9 +7,9 @@ input; this document is the living north star.
 
 An Omarchy bar-widget plugin (`kind: bar-widget`) that shows a persistent, glanceable countdown
 to the next scheduled SpaceX launch in the top bar's center section, alongside the built-in Clock
-and Weather widgets. Clicking the pill opens a detail panel listing the next three scheduled
-launches, each with its own local time, site, rocket, and mission, rendered against a faded
-background image themed to that launch's rocket family.
+and Weather widgets. Clicking the pill opens a detail panel showing the next launch's full detail
+(local time, site, rocket, mission) rendered against a faded background image themed to that
+launch's rocket family, plus a simple three-line list of the further scheduled launches after it.
 
 ## Why it exists
 
@@ -33,10 +33,11 @@ ambient in their bar rather than something they have to go fetch.
   time set), `Launching` (T-0 reached, outcome not yet confirmed by the data source), `Stale`
   (data fetch failed; last-known state shown with a visible stale marker rather than silently as
   current).
-- **Detail panel** — the expanded view: the next three scheduled launches, each with the same full
-  set of fields (local time/NET/TBD, site/pad, rocket name + variant, mission name, reference
-  link), rendered against a faded background image themed to that launch's rocket family
-  (Falcon 9 / Falcon Heavy / Starship; no image when the rocket isn't in that set).
+- **Detail panel** — the expanded view: the next launch's full set of fields (local time/NET/TBD,
+  site/pad, rocket name + variant, mission name, reference link), rendered against a faded
+  background image themed to that launch's rocket family (Falcon 9 / Falcon Heavy / Starship; no
+  image when the rocket isn't in that set), followed by an "UPCOMING" list of up to three further
+  scheduled launches as simple `<date> <time> · <rocket> · <mission>` lines.
 
 ## Current state
 
@@ -49,10 +50,10 @@ live and passed manual QA in a running Omarchy session.
 - Bar pill always reflects the best-known state of the next scheduled SpaceX launch, ticking live
   between data refreshes, with no filtering by mission type (every scheduled launch counts).
 - Click toggles the detail panel open/closed — no separate menu, matching Clock/Weather.
-- Detail panel shows the next three scheduled launches, each with local time (viewer's system
-  timezone), site, rocket, mission, and a reference link (SpaceX-specific when available,
-  otherwise the data source's own reference URL or a general SpaceX launches page fallback),
-  against a faded rocket-family background image.
+- Detail panel shows the next launch's local time (viewer's system timezone), site, rocket,
+  mission, and a reference link (SpaceX-specific when available, otherwise the data source's own
+  reference URL or a general SpaceX launches page fallback), against a faded rocket-family
+  background image, followed by a simple list of the next three launches after it.
 - When the pill is in `NET`, `TBD`, or `Launching` state, the panel reflects that same state
   rather than fabricating or showing stale details.
 - Once the data source confirms the current next launch's outcome, the widget automatically
@@ -66,7 +67,7 @@ live and passed manual QA in a running Omarchy session.
 - **F1. Idle display** — the bar renders; the pill shows current state with no user action,
   ticking live between refreshes.
 - **F2. Open detail panel** — user clicks the pill; panel opens with full details for the next
-  three launches; clicking again closes it.
+  launch plus a simple list of the three launches after it; clicking again closes it.
 - **F3. Launch rollover** — the next launch's window passes and the data source confirms an
   outcome; pill/panel advance to the following launch; until confirmed, pill holds `Launching`.
 
