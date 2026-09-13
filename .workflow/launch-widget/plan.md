@@ -6,12 +6,13 @@ Status: complete
 
 ## Execution state
 
-- Current: Step 2 — Helper · pending
+- Current: Step 3 — Model + tests · pending
 - Step 1 @ a77f487
+- Step 2 @ 2b32154
 - Writer: OpenAI · GPT-5.6 Terra (self-declared)
 - Baseline: `omarchy plugin validate .` exit 1 (manifest absent); `tests/run` exit 127 (absent)
-- Check: Step 1 passed — manifest validates; `tests/run` appears once in AGENTS.md
-- In flight: `LaunchCacheV1`, schemaVersion 1; no uncommitted files; no pending decisions
+- Check: Step 2 passed — normalized `LaunchCacheV1` has schema 1, exact precision, and SpaceX URL
+- In flight: `LaunchCacheV1`, schemaVersion 1; `Model.js` exports parse/derive/format functions; no uncommitted files
 
 ## Findings
 
@@ -36,9 +37,10 @@ Status: complete
   - Check: `omarchy plugin validate . && grep -o 'tests/run' AGENTS.md | wc -l` (pre: exit 1 "missing manifest.json"; 0)
   - Skills: none
   - Writer: OpenAI · GPT-5.6 Terra
-- [ ] Step 2 — Helper: `scripts/fetch-launches.sh` — `--from <file>` (offline) / live `GET .../2.3.0/launches/upcoming/?lsp__id=121&status__ids=1,2,5,6,8&ordering=net&limit=2&mode=detailed`, `--cache <path>`, `flock`, freshness skip, retry once, normalize to `LaunchCacheV1`, atomic write, keep cache on failure; fixtures `tests/fixtures/ll2-exact.json` (live capture, ≤ 3 results) + hand-edited `ll2-net.json`, `ll2-tbd.json`, `ll2-empty.json` (`scripts/fetch-launches.sh`, `tests/fixtures/*`) (F1–F6, F10)
+- [x] Step 2 — Helper: `scripts/fetch-launches.sh` — `--from <file>` (offline) / live `GET .../2.3.0/launches/upcoming/?lsp__id=121&status__ids=1,2,5,6,8&ordering=net&limit=2&mode=detailed`, `--cache <path>`, `flock`, freshness skip, retry once, normalize to `LaunchCacheV1`, atomic write, keep cache on failure; fixtures `tests/fixtures/ll2-exact.json` (live capture, ≤ 3 results) + hand-edited `ll2-net.json`, `ll2-tbd.json`, `ll2-empty.json` (`scripts/fetch-launches.sh`, `tests/fixtures/*`) (F1–F6, F10)
   - Check: `bash -n scripts/fetch-launches.sh && scripts/fetch-launches.sh --from tests/fixtures/ll2-exact.json --cache "$PWD/.cache-test.json" && jq -e '.schemaVersion == 1 and .next.timePrecision == "exact" and (.next.referenceUrl | startswith("https://www.spacex.com/"))' .cache-test.json` (pre: exit 127)
   - Skills: none
+  - Writer: OpenAI · GPT-5.6 Terra
 - [ ] Step 3 — `Model.js` + `tests/model.test.mjs`: `parseCache(text)`, `deriveState(cache, nowMs)` → `{state: loading|stale|launching|countdown|net|tbd, label, stale}` with precedence Loading > Stale > Launching > precision, `formatCountdown(ms)` → `T-3d 4h`/`T-04:12:09`, `formatNetDate`, `formatLocalTime` (system tz), after-next preview line; tests cover every state incl. `expiresAt` boundary and null `next` (`Model.js`, `tests/model.test.mjs`) (F1, F6)
   - Check: `node --test tests/` (pre: exit 1 "Could not find 'tests/'")
   - Skills: none
