@@ -13,6 +13,7 @@ BarWidget {
     readonly property string fetchScript: Qt.resolvedUrl("scripts/fetch-launches.sh").toString()
     property var cache: null
     property double nowMs: Date.now()
+    readonly property var next: Model.nextLaunch(cache)
     readonly property var display: Model.deriveState(cache, nowMs)
 
     readonly property bool opened: panelLoader.item ? panelLoader.item.opened === true : false
@@ -85,7 +86,7 @@ BarWidget {
     }
 
     Timer {
-        interval: root.display.state === "countdown" && root.cache && root.cache.next && Date.parse(root.cache.next.net) - root.nowMs < 60 * 60 * 1000 ? 1000 : 60 * 1000
+        interval: root.display.state === "countdown" && root.next && Date.parse(root.next.net) - root.nowMs < 60 * 60 * 1000 ? 1000 : 60 * 1000
         running: true
         repeat: true
         triggeredOnStart: true
