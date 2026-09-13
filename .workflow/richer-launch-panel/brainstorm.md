@@ -2,7 +2,7 @@ Command: workflow brainstorm richer-launch-panel
 Created: 2026-09-13
 Base: 40d917d37ebca89b57dcdaf765e24f2e5dd8fb37
 Inputs: none
-Status: complete
+Status: done
 
 ## Roadmap link
 

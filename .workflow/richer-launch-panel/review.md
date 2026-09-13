@@ -2,7 +2,7 @@ Command: workflow review richer-launch-panel
 Created: 2026-09-13
 Base: 22ce06720b22eac20b3566c9510514c22eefc4b8
 Inputs: .workflow/richer-launch-panel/plan.md @ fb6a763624baf7eda465d5468653edbbbfb84735; .workflow/richer-launch-panel/patch_plan.md @ 40e1907a7a321be8fc0c5e53c385490c21231a83
-Status: complete
+Status: done
 
 ## Coverage
 
