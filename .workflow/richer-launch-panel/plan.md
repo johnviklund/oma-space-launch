@@ -6,13 +6,13 @@ Status: complete
 
 ## Execution state
 
-- Current: Step 1 — in progress; next Step 2
+- Current: Step 1 — complete; next Step 2
 - Writer: OpenAI · GPT-5.6 Terra (self-declared)
 - Baseline: manifest validation pass; tests pass (1/1 file); lint pass
 - Contract in flight: cache `schemaVersion: 2`; `launches: [≤3]`; each launch gains `rocketFamily`
 - Uncommitted planned files: none
 - Pending decisions: none
-- Step commits: none
+- Step commits: Step 1 @ a911c4e
 
 ## Findings
 
@@ -30,9 +30,10 @@ Status: complete
 
 ## Checklist
 
-- [ ] Step 1 — Cache contract v2: `limit=3`, launch gains `rocketFamily: (.rocket.configuration.name // "")`, output `{schemaVersion: 2, fetchedAt, expiresAt, launches: [...]}`, TTL skip only when the existing cache is v2; fixtures per F4 (`scripts/fetch-launches.sh`, `tests/fixtures/*.json`) (F1–F4, F8)
+- [x] Step 1 — Cache contract v2: `limit=3`, launch gains `rocketFamily: (.rocket.configuration.name // "")`, output `{schemaVersion: 2, fetchedAt, expiresAt, launches: [...]}`, TTL skip only when the existing cache is v2; fixtures per F4 (`scripts/fetch-launches.sh`, `tests/fixtures/*.json`) (F1–F4, F8)
   - Check: `S=$(mktemp -d) && scripts/fetch-launches.sh --from tests/fixtures/ll2-exact.json --cache "$S/c.json" && jq -e '.schemaVersion == 2 and (.launches | length) == 3 and .launches[2].rocketFamily == "Falcon Heavy" and (has("next") | not)' "$S/c.json" && scripts/fetch-launches.sh --from tests/fixtures/ll2-empty.json --cache "$S/e.json" && jq -e '.launches == []' "$S/e.json"` (pre: `false`, exit 1)
   - Skills: none
+  - Writer: OpenAI · GPT-5.6 Terra
 - [ ] Step 2 — `Model.js` + tests: `parseCache` accepts only v2 with an array `launches`; `nextLaunch(cache)` → `launches[0]` or null; `deriveState` reads through it; `rocketArt(launch)` → `assets/falcon-9.svg` / `assets/falcon-heavy.svg` / `assets/starship.svg` by `rocketFamily`, else `""`; `formatAfterNext` deleted; tests: `cache()` helper builds v2, v1 rejected, `rocketArt` four cases, `nextLaunch` on empty (`Model.js`, `tests/model.test.mjs`) (F1, F2)
   - Check: `node --test tests/model.test.mjs && grep -o 'rocketArt' Model.js tests/model.test.mjs | wc -l` (pre: 0, tests 7/7)
   - Skills: none
