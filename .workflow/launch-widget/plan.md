@@ -6,15 +6,16 @@ Status: complete
 
 ## Execution state
 
-- Current: Step 5 — Detail panel · pending
+- Current: Step 6 — Dev install + manual QA + README · pending
 - Step 1 @ a77f487
 - Step 2 @ 2b32154
 - Step 3 @ 299263e
 - Step 4 @ b7a2df6
+- Step 5 @ bbd3f51
 - Writer: OpenAI · GPT-5.6 Terra (self-declared)
 - Baseline: `omarchy plugin validate .` exit 1 (manifest absent); `tests/run` exit 127 (absent)
-- Check: Step 4 passed — manifest validates; module, stale marker, and FileView each appear once
-- In flight: `LaunchCacheV1`, schemaVersion 1; `Panel.qml` receives bar-widget host properties; no uncommitted files
+- Check: Step 5 passed — one separator and one browser launcher reference; manifest validates
+- In flight: `LaunchCacheV1`, schemaVersion 1; development install and manual QA pending; no uncommitted files
 
 ## Findings
 
@@ -51,9 +52,10 @@ Status: complete
   - Check: `omarchy plugin validate . && grep -o 'moduleName: "oma-space-launch"' BarWidget.qml | wc -l && grep -o 'dimmed: ' BarWidget.qml | wc -l && grep -o 'FileView {' BarWidget.qml | wc -l` (pre: 0 0 0)
   - Skills: none
   - Writer: OpenAI · GPT-5.6 Terra
-- [ ] Step 5 — `Panel.qml`: `KeyboardPanel` + `PanelHero` (pill label as title, mission as meta), rows local time / site / rocket / mission / reference link (`omarchy-launch-browser`), `PanelSeparator`, after-next preview (date-or-NET + mission only), uncertainty and stale rendering per DESIGN.md §Panel layout 3–4, Esc/Tab via `PanelKeyCatcher` (`Panel.qml`) (F7, F8, F9)
+- [x] Step 5 — `Panel.qml`: `KeyboardPanel` + `PanelHero` (pill label as title, mission as meta), rows local time / site / rocket / mission / reference link (`omarchy-launch-browser`), `PanelSeparator`, after-next preview (date-or-NET + mission only), uncertainty and stale rendering per DESIGN.md §Panel layout 3–4, Esc/Tab via `PanelKeyCatcher` (`Panel.qml`) (F7, F8, F9)
   - Check: `grep -o 'PanelSeparator {' Panel.qml | wc -l && grep -o 'omarchy-launch-browser' Panel.qml | wc -l` (pre: 0 0)
   - Skills: none
+  - Writer: OpenAI · GPT-5.6 Terra
 - [ ] Step 6 — Dev install + manual QA + README: symlink `~/.config/omarchy/plugins/oma-space-launch -> repo`, `omarchy plugin enable oma-space-launch --section center`, `omarchy-shell shell rescanPlugins`; walk F1 (pill ticks), F2 (click toggles, link opens), Stale (set `expiresAt` in the past → dimmed), Launching + rollover (`--from` fixture with past `net`, then fixture without it → pill advances); README gets install/dev lines; paste results in the step commit (`README.md`) (F12)
   - Check: `omarchy plugin list --json | jq -e '.[] | select(.id == "oma-space-launch") | .enabled == true' && tests/run` (pre: exit 4; exit 127)
   - Skills: /home/johnviklund/.claude/skills/omarchy/SKILL.md
