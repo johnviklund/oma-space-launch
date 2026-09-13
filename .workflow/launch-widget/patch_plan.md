@@ -6,13 +6,14 @@ Status: complete
 
 ## Execution state
 
-- Current: Step 2 complete — next Step 3 (C1-2 Launching state gate)
+- Current: Step 3 complete — next Step 4 (C1-3 NET dates use UTC calendar)
 - Seat: Default executor (Fix P1/P2/P3s) · approval auto · one step = one finding = one commit
 - Step 1 @ 09ee3f8
 - Step 2 @ d702b42
+- Step 3 @ 761423f
 - Writer: OpenAI · GPT-5.6 Terra (self-declared)
 - Baseline: `omarchy plugin validate .`, `tests/run` (1/1), and lint all pass
-- In flight: no uncommitted code files; pending Steps 3–7
+- In flight: no uncommitted code files; pending Steps 4–7
 - Rule: a step whose Disposition is `defer`/`wontfix` is skipped, not implemented
 
 ## Checklist
@@ -27,7 +28,7 @@ Status: complete
   - Skills: none
   - Disposition: fix now (recommended)
   - Writer: OpenAI · GPT-5.6 Terra
-- [ ] Step 3 — C1-2 (P2) `Launching` only when a T-0 exists: in `deriveFreshState`, return `launching` only if `next.statusId === 6` (LL2 In Flight) or (`timePrecision === "exact"` and `net <= nowMs`); a NET/TBD launch past `00:00Z` of its day stays `net`/`tbd`. Add test `"past NET stays NET"` (net `2026-09-15T00:00:00Z`, precision `net`, now `06:00Z` → `{state: "net"}`) and one for `statusId: 6` → `launching`; write the test first, see it fail, then fix — the fix commit must not edit test files (`Model.js`, `tests/model.test.mjs`)
+- [x] Step 3 — C1-2 (P2) `Launching` only when a T-0 exists: in `deriveFreshState`, return `launching` only if `next.statusId === 6` (LL2 In Flight) or (`timePrecision === "exact"` and `net <= nowMs`); a NET/TBD launch past `00:00Z` of its day stays `net`/`tbd`. Add test `"past NET stays NET"` (net `2026-09-15T00:00:00Z`, precision `net`, now `06:00Z` → `{state: "net"}`) and one for `statusId: 6` → `launching`; write the test first, see it fail, then fix — the fix commit must not edit test files (`Model.js`, `tests/model.test.mjs`)
   - Check: `grep -c 'past NET stays NET' tests/model.test.mjs && node --test tests/model.test.mjs` (pre: 0; test absent)
   - Skills: none
   - Disposition: fix now (recommended)
