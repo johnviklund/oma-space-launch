@@ -6,15 +6,16 @@ Status: complete
 
 ## Execution state
 
-- Current: Step 4 complete — next Step 5 (C1-5 shared launch-time label)
+- Current: Step 5 complete — blocked before Step 6 on required Omarchy skill resolution
 - Seat: Default executor (Fix P1/P2/P3s) · approval auto · one step = one finding = one commit
 - Step 1 @ 09ee3f8
 - Step 2 @ d702b42
 - Step 3 @ 761423f
 - Step 4 @ 5db6e3f
+- Step 5 @ 1549a28
 - Writer: OpenAI · GPT-5.6 Terra (self-declared)
 - Baseline: `omarchy plugin validate .`, `tests/run` (1/1), and lint all pass
-- In flight: no uncommitted code files; pending Steps 5–7
+- In flight: no uncommitted code files; pending Steps 6–7; required Omarchy skill path unresolved
 - Rule: a step whose Disposition is `defer`/`wontfix` is skipped, not implemented
 
 ## Checklist
@@ -39,7 +40,7 @@ Status: complete
   - Skills: none
   - Disposition: fix now (recommended)
   - Writer: OpenAI · GPT-5.6 Terra
-- [ ] Step 5 — C1-5 (P3, model half) `Model.launchTimeLabel(next, nowMs)`: `"TBD"` for null `next`; `"Launching"` when `deriveFreshState(next, nowMs).state === "launching"`; `formatLocalTime(next.net)` for `exact`; `"NET " + formatNetDate(next.net, true)` for `net`; `"TBD"` otherwise — so the label depends on precision and fresh state, never on stale. Export it in the test harness and add a test covering all four branches (`Model.js`, `tests/model.test.mjs`)
+- [x] Step 5 — C1-5 (P3, model half) `Model.launchTimeLabel(next, nowMs)`: `"TBD"` for null `next`; `"Launching"` when `deriveFreshState(next, nowMs).state === "launching"`; `formatLocalTime(next.net)` for `exact`; `"NET " + formatNetDate(next.net, true)` for `net`; `"TBD"` otherwise — so the label depends on precision and fresh state, never on stale. Export it in the test harness and add a test covering all four branches (`Model.js`, `tests/model.test.mjs`)
   - Check: `grep -c 'function launchTimeLabel' Model.js && grep -c 'launchTimeLabel' tests/model.test.mjs && node --test tests/model.test.mjs` (pre: 0; 0)
   - Skills: none
   - Disposition: fix now (recommended)
