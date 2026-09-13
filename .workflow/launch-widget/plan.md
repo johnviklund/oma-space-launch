@@ -6,17 +6,18 @@ Status: complete
 
 ## Execution state
 
-- Current: Step 6 — Dev install + manual QA + README · manual QA blocked
+- Current: Phase 3 complete — ready for Phase 4 review
 - Step 1 @ a77f487
 - Step 2 @ 2b32154
 - Step 3 @ 299263e
 - Step 4 @ b7a2df6
 - Step 5 @ bbd3f51
 - User change @ ba6e9e5 — next preview renamed and weekday added
+- Step 6 @ be16f06
 - Writer: OpenAI · GPT-5.6 Terra (self-declared)
 - Baseline: `omarchy plugin validate .` exit 1 (manifest absent); `tests/run` exit 127 (absent)
-- Check: plugin enabled and `tests/run` passes 4/4; live cache has schema 1 and a next launch
-- In flight: README.md uncommitted; manual QA blocked (agent has no Wayland display); pending user exercise
+- Check: plugin enabled; `tests/run` passes 4/4; user passed pill, panel/link, stale, and rollover QA
+- In flight: no uncommitted files; `LaunchCacheV1` schemaVersion 1; pending Phase 4 review
 
 ## Findings
 
@@ -57,9 +58,11 @@ Status: complete
   - Check: `grep -o 'PanelSeparator {' Panel.qml | wc -l && grep -o 'omarchy-launch-browser' Panel.qml | wc -l` (pre: 0 0)
   - Skills: none
   - Writer: OpenAI · GPT-5.6 Terra
-- [ ] Step 6 — Dev install + manual QA + README: symlink `~/.config/omarchy/plugins/oma-space-launch -> repo`, `omarchy plugin enable oma-space-launch --section center`, `omarchy-shell shell rescanPlugins`; walk F1 (pill ticks), F2 (click toggles, link opens), Stale (set `expiresAt` in the past → dimmed), Launching + rollover (`--from` fixture with past `net`, then fixture without it → pill advances); README gets install/dev lines; paste results in the step commit (`README.md`) (F12)
+- [x] Step 6 — Dev install + manual QA + README: symlink `~/.config/omarchy/plugins/oma-space-launch -> repo`, `omarchy plugin enable oma-space-launch --section center`, `omarchy-shell shell rescanPlugins`; walk F1 (pill ticks), F2 (click toggles, link opens), Stale (set `expiresAt` in the past → dimmed), Launching + rollover (`--from` fixture with past `net`, then fixture without it → pill advances); README gets install/dev lines; paste results in the step commit (`README.md`) (F12)
   - Check: `omarchy plugin list --json | jq -e '.[] | select(.id == "oma-space-launch") | .enabled == true' && tests/run` (pre: exit 4; exit 127)
   - Skills: /home/johnviklund/.claude/skills/omarchy/SKILL.md
+  - Writer: OpenAI · GPT-5.6 Terra
+  - Manual QA: user passed F1 pill tick, F2 panel/link, stale dimming, and Launching-to-rollover.
 
 ## Coverage
 
@@ -75,7 +78,7 @@ Status: complete
 ## Deviations
 
 - Step 1: validator requires the declared entry point, so user-approved choice 1a added a minimal `BarWidget.qml` placeholder; Step 4 replaces it with the planned host implementation.
-- Step 6: `grim` cannot access a display from this agent environment, so the live pill/panel, stale marker, and rollover exercises require an active Omarchy session.
+- Step 6: `grim` cannot access a display from this agent environment; the user completed the live pill/panel, stale-marker, and rollover exercises instead.
 - User change: the following-launch section is now "NEXT LAUNCH" and its date includes a weekday.
 
 ## Risks
