@@ -40,13 +40,13 @@ test("past NET stays NET", () => {
     const netLaunch = { net: "2026-09-15T00:00:00Z", timePrecision: "net" };
     const afterNetMidnight = Date.parse("2026-09-15T06:00:00Z");
 
-    assert.equal(model.deriveState(cache(netLaunch), afterNetMidnight).state, "net");
+    assert.equal(model.deriveState(cache(netLaunch, "2026-09-16T00:00:00Z"), afterNetMidnight).state, "net");
 });
 
 test("in-flight launches are Launching", () => {
     const inFlight = { net: "2026-09-15T12:00:00Z", timePrecision: "net", statusId: 6 };
 
-    assert.equal(model.deriveState(cache(inFlight), now).state, "launching");
+    assert.equal(model.deriveState(cache(inFlight, "2026-09-16T00:00:00Z"), now).state, "launching");
 });
 
 test("formatters keep pill and preview text compact", () => {
