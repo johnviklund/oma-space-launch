@@ -12,7 +12,7 @@ Status: complete
 - In flight: `Panel.qml` delegate now declares `required property int index`; no contract change
 - Step commits: Step P1 @ f584d71
 - Manual QML QA: blocked in this environment; `omarchy-shell shell rescanPlugins` reports "omarchy-shell is not running"
-- Uncommitted files: this patch-plan receipt only
+- Uncommitted files: none; `TODO.md` is an unrelated user change
 
 ## Checklist
 
