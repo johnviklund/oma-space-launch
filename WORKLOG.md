@@ -5,6 +5,23 @@ source of truth (git is) and not an archive — keep roughly the 15 most recent 
 older ones when appending past that (they remain in git history). Entry shape and full rules: see
 the `workflow` skill's `references/learning-worklog.md`.
 
+## 2026-09-13 · richer-launch-panel · v1.1 panel expands to 3 launches + rocket art · OpenAI · GPT-5.6 Terra
+- Panel now lists the next three launches (was one full + a bare after-next preview), each with
+  local time/NET/TBD, site/pad, rocket + variant, mission, link, against a faded rocket-family
+  silhouette (`assets/falcon-9.svg` / `falcon-heavy.svg` / `starship.svg`, `Image` + `MultiEffect`
+  tint, 0.12 opacity). Cache contract bumped to `schemaVersion: 2` (`launches: [≤3]`, lockstep
+  with `next`/`afterNext` removed); helper's TTL skip now guards on schema so an old v1 cache is
+  refetched instead of read.
+- Patch cycle 1 fixed 1 finding: `PanelSeparator` visibility never evaluated because `index` wasn't
+  injected into a delegate with required properties (C1-1) — trailing separator + logged
+  ReferenceErrors on every Repeater rebuild.
+- Commits: a911c4e..dfafb26 (see `.workflow/richer-launch-panel/` for full history)
+- Review: ship as-is @ f584d71 (cycle 2) — 0 P0 · 0 P1 · 0 P2 · 0 P3
+- Run: 6 steps · 2 review cycles · 2 deviations (Step 3 rsvg-convert sink re-plan; Step 6 shell
+  restart) · 0 findings overturned
+- Seats: OpenAI·GPT-5.6 Terra (plan/execute) · Anthropic·Opus 5 (review)
+- Why: three-launch list + themed rocket art per `TODO.md`'s Active Initiative → `ROADMAP.md` v1.1.
+
 ## 2026-09-13 · launch-widget · v1 SpaceX launch-countdown bar-widget + panel · OpenAI · GPT-5.6 Terra
 - Shipped the full v1 scope: manifest scaffold, `scripts/fetch-launches.sh` LL2 helper (flock,
   freshness skip, retry, atomic write), `Model.js` state derivation, `BarWidget.qml` (Clock host
