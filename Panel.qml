@@ -27,12 +27,6 @@ Panel {
         return false
     }
 
-    function launchTimeLabel() {
-        if (display.state === "net" || display.state === "tbd" || display.state === "launching")
-            return display.label
-        return next ? Model.formatLocalTime(next.net) : "TBD"
-    }
-
     KeyboardPanel {
         id: panel
         anchorItem: root.anchorItem
@@ -89,7 +83,7 @@ Panel {
 
                         Repeater {
                             model: [
-                                { label: "LOCAL TIME", value: root.launchTimeLabel() },
+                                { label: "LOCAL TIME", value: Model.launchTimeLabel(root.next, root.hostWidget ? root.hostWidget.nowMs : Date.now()) },
                                 { label: "SITE", value: root.next ? root.next.site : "" },
                                 { label: "ROCKET", value: root.next ? root.next.rocket : "" },
                                 { label: "MISSION", value: root.next ? (root.next.mission || "—") : "" }
