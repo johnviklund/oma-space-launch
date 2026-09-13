@@ -6,12 +6,12 @@ Status: complete
 
 ## Execution state
 
-- Current: Step 2 — complete; next Step 3
+- Current: Step 3 — blocked by its `rsvg-convert -o /dev/null` check; next Step 3 after re-plan
 - Writer: OpenAI · GPT-5.6 Terra (self-declared)
 - Baseline: manifest validation pass; tests pass (1/1 file); lint pass
 - Contract in flight: cache `schemaVersion: 2`; `launches: [≤3]`; each launch gains `rocketFamily`
-- Uncommitted planned files: none
-- Pending decisions: none
+- Uncommitted planned files: `assets/falcon-9.svg`, `assets/falcon-heavy.svg`, `assets/starship.svg`
+- Pending decisions: replace Step 3's renderer sink with regular scratchpad PNG paths
 - Step commits: Step 1 @ a911c4e; Step 2 @ 15fcd52
 
 ## Findings
@@ -70,6 +70,10 @@ Status: complete
 - Riskiest: Step 1 — the schema bump invalidates the on-disk cache; without F3's guard every upgraded install shows `Loading` for up to 15 min. Step 6 verifies the reload with the v1 file in place.
 - Outside its files: `mode=detailed` at `limit=3` adds ~45 KB per fetch (same request count, LL2 budget unchanged); `MultiEffect` adds one GPU layer per entry while the panel is open — trivial here, but `QtQuick.Effects` becomes a load-time dependency of `Panel.qml` (present on this install).
 - Not taken: keeping `next`/`afterNext` beside `launches` for compatibility — no external consumer exists; a lockstep v2 is smaller and honest.
+
+## Deviations
+
+- Step 3 blocked: installed `rsvg-convert` rejects `-o /dev/null` (`Target file is not a regular file`), so the required command exits 1 before manifest validation. The SVGs remain uncommitted; Phase 2 must replace the sink with regular scratchpad PNG files before execution resumes.
 
 ## TODO impacts
 
