@@ -6,16 +6,17 @@ Status: complete
 
 ## Execution state
 
-- Current: Step 6 edited, awaiting required live Tab-switch QA; `Panel.qml` is uncommitted
+- Current: Step 6 complete — next Step 7 (C1-5 panel launch-time label)
 - Seat: Default executor (Fix P1/P2/P3s) · approval auto · one step = one finding = one commit
 - Step 1 @ 09ee3f8
 - Step 2 @ d702b42
 - Step 3 @ 761423f
 - Step 4 @ 5db6e3f
 - Step 5 @ 1549a28
+- Step 6 @ 82f179f
 - Writer: OpenAI · GPT-5.6 Terra (self-declared)
 - Baseline: `omarchy plugin validate .`, `tests/run` (1/1), and lint all pass
-- In flight: `Panel.qml` uncommitted; Steps 6–7 pending; installed Omarchy skill approved as substitute
+- In flight: no uncommitted code files; Step 7 pending; installed Omarchy skill approved as substitute
 - Rule: a step whose Disposition is `defer`/`wontfix` is skipped, not implemented
 
 ## Checklist
@@ -45,7 +46,7 @@ Status: complete
   - Skills: none
   - Disposition: fix now (recommended)
   - Writer: OpenAI · GPT-5.6 Terra
-- [ ] Step 6 — C1-4 (P3) Drop the redundant `Panel` overrides: delete `open()`, `close()`, `toggle()`, `closeForPopoutSwitch()` from `Panel.qml` (the `qs.Ui` base provides all four and its `closeForPopoutSwitch` sets `popoutSwitchClosing`); keep `switchPanel` (needs `barIdentity`). Manual QA: open the launch panel, press Tab → Clock panel appears with a hard cut, no fade-out of the launch panel (`Panel.qml`)
+- [x] Step 6 — C1-4 (P3) Drop the redundant `Panel` overrides: delete `open()`, `close()`, `toggle()`, `closeForPopoutSwitch()` from `Panel.qml` (the `qs.Ui` base provides all four and its `closeForPopoutSwitch` sets `popoutSwitchClosing`); keep `switchPanel` (needs `barIdentity`). Manual QA: open the launch panel, press Tab → Clock panel appears with a hard cut, no fade-out of the launch panel (`Panel.qml`)
   - Check: `grep -c 'function switchPanel' Panel.qml && grep -c 'function closeForPopoutSwitch' Panel.qml; omarchy plugin validate .` (pre: 1; 1 → expect 1; 0)
   - Skills: /home/johnviklund/.claude/skills/omarchy/SKILL.md
   - Disposition: fix now (recommended)
@@ -62,4 +63,4 @@ Status: complete
 
 ## Deviations
 
-- Step 6: required skill path was absent; user approved `/home/johnviklund/.codex/skills/omarchy/SKILL.md` as its substitute. Structural check and manifest validation pass, but live Tab-switch QA is blocked because `omarchy-shell` is not running in this session.
+- Step 6: required skill path was absent; user approved `/home/johnviklund/.codex/skills/omarchy/SKILL.md` as its substitute. Structural and manifest checks pass; user passed the live Tab-switch QA.
