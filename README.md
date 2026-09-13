@@ -18,3 +18,18 @@ Clock and Weather widgets.
 
 Development follows the personal `workflow` skill: `brainstorm` → (optional `spec`) → `plan` →
 `execute` → `review` → `wrap`, one run per `ROADMAP.md` initiative under `.workflow/<slug>/`.
+
+## Install and develop
+
+From the repository root, validate and install the plugin as a user-owned development symlink:
+
+```bash
+omarchy plugin validate .
+ln -sfn "$PWD" ~/.config/omarchy/plugins/oma-space-launch
+omarchy-shell shell rescanPlugins
+omarchy plugin enable oma-space-launch --section center
+```
+
+The bar reloads plugin code from that symlink. Middle-click the pill to force a data refresh; use
+the `tests/fixtures/` files with `scripts/fetch-launches.sh --from … --cache …` for offline state
+checks.
