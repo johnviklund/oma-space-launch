@@ -6,17 +6,20 @@ Status: complete
 
 ## Execution state
 
-- Current: not started — next: Step P1 (awaiting human disposition on C1-1; recommended fix now)
-- Writer: —
-- Step commits: —
+- Current: Step P1 complete — next: Phase 4 review (cycle 2)
+- Writer: OpenAI · GPT-5 (self-declared)
+- Baseline / step checks: manifest valid; tests 1/1 pass; lint pass
+- In flight: `Panel.qml` delegate now declares `required property int index`; no contract change
+- Step commits: Step P1 @ f584d71
+- Uncommitted files: this patch-plan receipt only; manual QML QA remains after shell reload
 
 ## Checklist
 
-- [ ] Step P1 — C1-1 (P2, fix now): in `Panel.qml`, the outer Repeater delegate (`delegate: Item { id: launchEntry … }`, line 83–85) gains `required property int index` directly under its existing `required property var modelData`; nothing else changes — the `PanelSeparator.visible: index < root.launches.length - 1` binding at line 165 stays as written and now resolves (`Panel.qml`) (review C1-1)
+- [x] Step P1 — C1-1 (P2, fix now): in `Panel.qml`, the outer Repeater delegate (`delegate: Item { id: launchEntry … }`, line 83–85) gains `required property int index` directly under its existing `required property var modelData`; nothing else changes — the `PanelSeparator.visible: index < root.launches.length - 1` binding at line 165 stays as written and now resolves (`Panel.qml`) (review C1-1)
   - Check: `grep -o 'required property int index' Panel.qml | wc -l && grep -o 'required property var modelData' Panel.qml | wc -l && omarchy plugin validate . && echo validate ok` (pre: 0 2 validate ok — post: 1 2 validate ok)
   - Disposition: fix now — one line; the alternative (leaving a trailing separator + three ReferenceErrors per cache reload) has no upside
   - Skills: none
-  - Writer: —
+  - Writer: OpenAI · GPT-5
 
 ## Human QA after the step (not gating the check)
 
