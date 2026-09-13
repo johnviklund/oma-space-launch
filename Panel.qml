@@ -1,4 +1,5 @@
 import QtQuick
+import QtQuick.Effects
 import Quickshell
 import qs.Commons
 import qs.Ui
@@ -15,8 +16,8 @@ Panel {
     readonly property var barIdentity: hostWidget || root
     readonly property var cache: hostWidget ? hostWidget.cache : null
     readonly property var display: hostWidget ? hostWidget.display : Model.deriveState(cache, Date.now())
-    readonly property var next: cache ? cache.next : null
-    readonly property var afterNext: cache ? cache.afterNext : null
+    readonly property var launches: cache && Array.isArray(cache.launches) ? cache.launches : []
+    readonly property var next: Model.nextLaunch(cache)
     readonly property color foreground: bar ? bar.foreground : Color.foreground
     readonly property string fontFamily: bar ? bar.fontFamily : Style.font.family
     readonly property bool stale: display.stale === true
@@ -76,83 +77,95 @@ Panel {
                         }
                     }
 
-                    Column {
-                        visible: root.next !== null
-                        width: parent.width
-                        spacing: Style.space(8)
+                    Repeater {
+                        model: root.launches
 
-                        Repeater {
-                            model: [
-                                { label: "LOCAL TIME", value: Model.launchTimeLabel(root.next, root.hostWidget ? root.hostWidget.nowMs : Date.now()) },
-                                { label: "SITE", value: root.next ? root.next.site : "" },
-                                { label: "ROCKET", value: root.next ? root.next.rocket : "" },
-                                { label: "MISSION", value: root.next ? (root.next.mission || "—") : "" }
-                            ]
+                        delegate: Item {
+                            id: launchEntry
+                            required property var modelData
+                            width: parent.width
+                            implicitHeight: launchContent.implicitHeight
 
-                            delegate: Row {
-                                required property var modelData
-                                width: parent.width
-                                spacing: Style.space(16)
+                            readonly property var launch: modelData
+                            readonly property string artPath: Model.rocketArt(launch)
 
-                                Text {
-                                    id: label
-                                    width: Style.space(104)
-                                    text: modelData.label
-                                    color: Qt.darker(root.foreground, 1.4)
-                                    font.family: root.fontFamily
-                                    font.pixelSize: Style.font.caption
-                                    font.bold: true
-                                    font.letterSpacing: 1.1
-                                }
-
-                                Text {
-                                    id: value
-                                    width: parent.width - label.width - parent.spacing
-                                    text: modelData.value
-                                    color: root.foreground
-                                    font.family: root.fontFamily
-                                    font.pixelSize: Style.font.body
-                                    wrapMode: Text.WordWrap
+                            Image {
+                                anchors.right: parent.right
+                                anchors.verticalCenter: parent.verticalCenter
+                                width: Math.min(parent.width, Style.space(180))
+                                height: parent.height
+                                source: Qt.resolvedUrl(launchEntry.artPath)
+                                sourceSize.width: Math.round(width * Screen.devicePixelRatio)
+                                sourceSize.height: Math.round(height * Screen.devicePixelRatio)
+                                fillMode: Image.PreserveAspectFit
+                                opacity: 0.12
+                                visible: launchEntry.artPath !== ""
+                                layer.enabled: true
+                                layer.effect: MultiEffect {
+                                    colorization: 1.0
+                                    colorizationColor: root.foreground
                                 }
                             }
-                        }
-                    }
 
-                    Text {
-                        visible: root.next !== null
-                        text: "Open SpaceX launch page"
-                        color: Color.accent
-                        font.family: root.fontFamily
-                        font.pixelSize: Style.font.body
+                            Column {
+                                id: launchContent
+                                width: parent.width
+                                spacing: Style.space(8)
 
-                        MouseArea {
-                            anchors.fill: parent
-                            cursorShape: Qt.PointingHandCursor
-                            onClicked: if (root.next && root.next.referenceUrl) Quickshell.execDetached(["omarchy-launch-browser", root.next.referenceUrl])
-                        }
-                    }
+                                Repeater {
+                                    model: [
+                                        { label: "LOCAL TIME", value: Model.launchTimeLabel(launchEntry.launch, root.hostWidget ? root.hostWidget.nowMs : Date.now()) },
+                                        { label: "SITE", value: launchEntry.launch.site },
+                                        { label: "ROCKET", value: launchEntry.launch.rocket },
+                                        { label: "MISSION", value: launchEntry.launch.mission || "—" }
+                                    ]
 
-                    PanelSeparator {
-                        width: parent.width
-                        foreground: root.foreground
-                    }
+                                    delegate: Row {
+                                        required property var modelData
+                                        width: parent.width
+                                        spacing: Style.space(16)
 
-                    Column {
-                        width: parent.width
-                        spacing: Style.space(4)
+                                        Text {
+                                            id: label
+                                            width: Style.space(104)
+                                            text: modelData.label
+                                            color: Qt.darker(root.foreground, 1.4)
+                                            font.family: root.fontFamily
+                                            font.pixelSize: Style.font.caption
+                                            font.bold: true
+                                            font.letterSpacing: 1.1
+                                        }
 
-                        PanelSectionHeader {
-                            text: "NEXT LAUNCH"
-                            foreground: root.foreground
-                        }
+                                        Text {
+                                            width: parent.width - label.width - parent.spacing
+                                            text: modelData.value
+                                            color: root.foreground
+                                            font.family: root.fontFamily
+                                            font.pixelSize: Style.font.body
+                                            wrapMode: Text.WordWrap
+                                        }
+                                    }
+                                }
 
-                        Text {
-                            width: parent.width
-                            text: root.afterNext ? Model.formatAfterNext(root.afterNext) : "No following launch scheduled"
-                            color: Qt.darker(root.foreground, 1.4)
-                            font.family: root.fontFamily
-                            font.pixelSize: Style.font.body
-                            wrapMode: Text.WordWrap
+                                Text {
+                                    text: "Open SpaceX launch page"
+                                    color: Color.accent
+                                    font.family: root.fontFamily
+                                    font.pixelSize: Style.font.body
+
+                                    MouseArea {
+                                        anchors.fill: parent
+                                        cursorShape: Qt.PointingHandCursor
+                                        onClicked: if (launchEntry.launch.referenceUrl) Quickshell.execDetached(["omarchy-launch-browser", launchEntry.launch.referenceUrl])
+                                    }
+                                }
+
+                                PanelSeparator {
+                                    width: parent.width
+                                    visible: index < root.launches.length - 1
+                                    foreground: root.foreground
+                                }
+                            }
                         }
                     }
                 }
