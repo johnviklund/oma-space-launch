@@ -31,5 +31,6 @@ omarchy plugin enable oma-space-launch --section center
 ```
 
 The bar reloads plugin code from that symlink. Middle-click the pill to force a data refresh; use
-the `tests/fixtures/` files with `scripts/fetch-launches.sh --from … --cache …` for offline state
-checks.
+the three-launch `tests/fixtures/ll2-exact.json` fixture (plus the `ll2-net.json` and
+`ll2-tbd.json` state fixtures) with `scripts/fetch-launches.sh --from … --cache …` for offline
+panel checks.
