@@ -2,7 +2,7 @@
 set -euo pipefail
 
 readonly API_URL='https://ll.thespacedevs.com/2.3.0/launches/upcoming/?lsp__id=121&status__ids=1,2,5,6,8&ordering=net&limit=2&mode=detailed'
-readonly CACHE_TTL_SECONDS=1200
+readonly CACHE_TTL_SECONDS=900
 readonly EXPIRES_AFTER_SECONDS=2400
 readonly RETRY_DELAY_SECONDS=120
 
