@@ -6,13 +6,17 @@ Status: complete
 
 ## Execution state
 
-- Current: awaiting human dispositions, then `workflow execute launch-widget` runs this file (plan.md checklist is complete and is not re-run)
+- Current: Step 1 complete — next Step 2 (C1-6 reference-URL scheme guard)
 - Seat: Default executor (Fix P1/P2/P3s) · approval auto · one step = one finding = one commit
+- Step 1 @ 09ee3f8
+- Writer: OpenAI · GPT-5.6 Terra (self-declared)
+- Baseline: `omarchy plugin validate .`, `tests/run` (1/1), and lint all pass
+- In flight: no uncommitted code files; pending Steps 2–7
 - Rule: a step whose Disposition is `defer`/`wontfix` is skipped, not implemented
 
 ## Checklist
 
-- [ ] Step 1 — C1-1 (P2) Helper cadence: `CACHE_TTL_SECONDS` 1200 → 900 so the widget's 20-min tick always refetches (worst-case fetch+retry latency ≈ 160 s) while a second invocation inside 15 min still exits 0; `EXPIRES_AFTER_SECONDS` stays 2400 (`scripts/fetch-launches.sh`)
+- [x] Step 1 — C1-1 (P2) Helper cadence: `CACHE_TTL_SECONDS` 1200 → 900 so the widget's 20-min tick always refetches (worst-case fetch+retry latency ≈ 160 s) while a second invocation inside 15 min still exits 0; `EXPIRES_AFTER_SECONDS` stays 2400 (`scripts/fetch-launches.sh`)
   - Check: `rm -f .cache-test.json .cache-test.json.lock && grep -c 'CACHE_TTL_SECONDS=900' scripts/fetch-launches.sh && scripts/fetch-launches.sh --from tests/fixtures/ll2-exact.json --cache "$PWD/.cache-test.json" --force && touch -d '1100 seconds ago' .cache-test.json && scripts/fetch-launches.sh --from tests/fixtures/ll2-empty.json --cache "$PWD/.cache-test.json" && jq -e '.next == null' .cache-test.json; rm -f .cache-test.json .cache-test.json.lock` (pre: 0; jq exit 1)
   - Skills: none
   - Disposition: fix now (recommended)
