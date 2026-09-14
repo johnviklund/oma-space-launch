@@ -54,14 +54,15 @@ Panel {
             anchors.topMargin: -panel.padding
             anchors.rightMargin: -panel.padding
             width: hero.width * 0.43 + panel.padding
-            height: Math.max(0, Math.min(parent.height + panel.padding, hero.height + panel.padding - launchScroll.contentY))
+            height: Math.max(0, Math.min(parent.height + panel.padding,
+                hero.height + content.spacing + panel.padding - launchScroll.contentY))
             visible: hero.showArt
             clip: true
 
             Image {
                 id: rocketPhoto
                 width: parent.width
-                height: hero.height + panel.padding
+                height: hero.height + content.spacing + panel.padding
                 y: -launchScroll.contentY
                 source: hero.showArt ? Qt.resolvedUrl(root.nextArtPath) : ""
                 sourceSize.height: Math.round(height * Screen.devicePixelRatio)

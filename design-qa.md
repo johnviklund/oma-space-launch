@@ -17,11 +17,12 @@ final result: passed
 3. `/home/johnviklund/Pictures/screenshot-2026-09-14_23-37-34.png` and `/tmp/oma-space-launch-layout-qa/final.png`: reviewed against the source together after the correction. No remaining actionable P0/P1/P2 visual differences.
 
 4. User refinement: remove the image inset at the top and right window edges. Moved artwork behind the padded text container, extended it through the host padding to the inner border, and retained scroll clipping. `docs/screenshots/mission-control.png` was recaptured and inspected after a shell restart: both edges are flush, text padding is intact, and there are no QML/image errors. This narrow change was locally reviewed after the completed code-review receipt.
+5. User refinement: continue the artwork through the hero's trailing spacing so its lower edge meets the divider above `UPCOMING`. The saved preview was recaptured after a shell restart and shows no remaining dark gap between the image and divider.
 
 ## Required fidelity surfaces
 
 - Typography: inherited monospace family; large countdown, subordinate mission title, small section labels and readable 14px body. Long site and mission text wraps without clipping.
-- Layout: top-centered native shell, text-led hero, upright rocket flush with the top/right inner borders, horizontal separator, aligned upcoming date and mission/rocket columns. Height fits content; the existing Flickable remains available for limited-height screens.
+- Layout: top-centered native shell, text-led hero, upright rocket flush with the top/right inner borders and the upcoming-section divider, aligned upcoming date and mission/rocket columns. Height fits content; the existing Flickable remains available for limited-height screens.
 - Colors: inherited Omarchy foreground, popup background, border and accent. The current theme's cool lavender text replaces the mock's near-white; this is an intentional host-theme adaptation. No custom theme settings were changed.
 - Imagery: new generated launchpad imagery uses the same night lighting direction. Falcon 9 is single-core, Falcon Heavy has three cores, Starship uses the stainless stack. Selection follows `rocketFamily`; unknown families show no image. The artwork is illustrative, not a photograph of the specific mission.
 - Copy: retains full source site and rocket variant, local date/time with timezone, mission and launch-page action. Upcoming rows retain uncertain NET/TBD values. No invented mission tagline or telemetry.
