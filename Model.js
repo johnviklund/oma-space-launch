@@ -46,6 +46,18 @@ function formatCountdown(ms) {
     return "T-" + pad(hours) + ":" + pad(minutes) + ":" + pad(seconds);
 }
 
+function launchPhoto(launch) {
+    if (!launch)
+        return "";
+
+    switch (launch.rocketFamily) {
+    case "Falcon 9": return "assets/falcon-launchpad.png";
+    case "Falcon Heavy": return "assets/heavy-launchpad.png";
+    case "Starship": return "assets/starship-launchpad.png";
+    default: return "";
+    }
+}
+
 function formatNetDate(isoTime, utcCalendar = true) {
     const date = new Date(isoTime);
     if (isNaN(date.getTime()))
@@ -114,15 +126,20 @@ function deriveFreshState(next, nowMs) {
     return { state: "tbd", label: "TBD", stale: false };
 }
 
+function formatUpcomingTime(launch) {
+    if (!launch)
+        return "TBD";
+
+    return launch.timePrecision === "exact" ? formatNetDate(launch.net, false) + " " + formatShortTime(launch.net)
+        : launch.timePrecision === "net" ? "NET " + formatNetDate(launch.net)
+        : "TBD";
+}
+
 function formatUpcomingLine(launch) {
     if (!launch)
         return "";
 
-    const time = launch.timePrecision === "exact" ? formatNetDate(launch.net, false) + " " + formatShortTime(launch.net)
-        : launch.timePrecision === "net" ? "NET " + formatNetDate(launch.net)
-        : "TBD";
-
-    const parts = [time];
+    const parts = [formatUpcomingTime(launch)];
     if (launch.rocket)
         parts.push(launch.rocket);
     if (launch.mission)

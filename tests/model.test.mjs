@@ -5,7 +5,7 @@ import vm from "node:vm";
 
 const model = vm.runInThisContext(`(() => {
 ${readFileSync(new URL("../Model.js", import.meta.url), "utf8")}
-return { parseCache, nextLaunch, rocketArt, deriveState, formatCountdown, formatNetDate, formatLocalTime, launchTimeLabel, formatUpcomingLine };
+return { parseCache, nextLaunch, rocketArt, launchPhoto, deriveState, formatCountdown, formatNetDate, formatLocalTime, launchTimeLabel, formatUpcomingLine, formatUpcomingTime };
 })()`);
 
 const expiresAt = "2026-09-14T00:00:00Z";
@@ -99,4 +99,28 @@ test("formatters keep pill text compact", () => {
     assert.equal(model.formatCountdown(4 * 3600000 + 12 * 60000 + 9000), "T-04:12:09");
     assert.equal(model.formatNetDate("2026-09-14T00:00:00Z"), "Sep 14");
     assert.notEqual(model.formatLocalTime("2026-09-14T00:00:00Z"), "TBD");
+});
+
+test("launch photos follow the next launch's family and never substitute another rocket", () => {
+    for (const [rocketFamily, filename] of Object.entries({
+        "Falcon 9": "falcon-launchpad.png",
+        "Falcon Heavy": "heavy-launchpad.png",
+        "Starship": "starship-launchpad.png"
+    })) {
+        assert.equal(model.launchPhoto({ rocketFamily }), "assets/" + filename);
+        const image = readFileSync(new URL("../" + model.launchPhoto({ rocketFamily }), import.meta.url));
+        assert.deepEqual(image.subarray(0, 8), Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]));
+    }
+    assert.equal(model.launchPhoto(null), "");
+    assert.equal(model.launchPhoto({ rocketFamily: "Falcon 1" }), "");
+    assert.equal(model.launchPhoto({}), "");
+});
+
+test("upcoming date column preserves exact, NET and unknown times", () => {
+    assert.equal(model.formatUpcomingTime(null), "TBD");
+    assert.equal(model.formatUpcomingTime({ net: null, timePrecision: "tbd" }), "TBD");
+    assert.equal(model.formatUpcomingTime({ net: "2026-09-15T00:00:00Z", timePrecision: "net" }), "NET Sep 15");
+    const date = new Date(exactLaunch.net);
+    assert.equal(model.formatUpcomingTime(exactLaunch), model.formatNetDate(exactLaunch.net, false)
+        + " " + String(date.getHours()).padStart(2, "0") + ":" + String(date.getMinutes()).padStart(2, "0"));
 });
