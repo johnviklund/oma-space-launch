@@ -29,10 +29,20 @@ test("nextLaunch returns the first launch or null", () => {
     assert.equal(model.nextLaunch(cache(null)), null);
 });
 
-test("rocketArt maps supported rocket families", () => {
-    assert.equal(model.rocketArt({ rocketFamily: "Falcon 9" }), "assets/F9_2_mobile.jpg");
-    assert.equal(model.rocketArt({ rocketFamily: "Falcon Heavy" }), "assets/FH_8_mobile.jpg");
-    assert.equal(model.rocketArt({ rocketFamily: "Starship" }), "assets/starship.jpeg");
+test("rocketArt randomly selects from each supported rocket family's images", () => {
+    const families = {
+        "Falcon 9": ["assets/falcon-diagonal.png", "assets/falcon-elevation.png", "assets/falcon-study.png"],
+        "Falcon Heavy": ["assets/heavy-diagonal.png", "assets/heavy-elevation.png", "assets/heavy-study.png"],
+        "Starship": ["assets/starship-diagonal.png", "assets/starship-elevation.png", "assets/starship-study.png"]
+    };
+
+    for (const [rocketFamily, images] of Object.entries(families)) {
+        assert.equal(model.rocketArt({ rocketFamily }, () => 0), images[0]);
+        assert.equal(model.rocketArt({ rocketFamily }, () => 1 / 3), images[1]);
+        assert.equal(model.rocketArt({ rocketFamily }, () => 2 / 3), images[2]);
+    }
+
+    assert.equal(model.rocketArt(null), "");
     assert.equal(model.rocketArt({ rocketFamily: "Falcon 1" }), "");
 });
 

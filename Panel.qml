@@ -23,7 +23,6 @@ Panel {
     readonly property string fontFamily: bar ? bar.fontFamily : Style.font.family
     readonly property bool stale: display.stale === true
     readonly property string nextArtPath: Model.rocketArt(next)
-    readonly property bool nextArtIsPhoto: nextArtPath.endsWith(".jpg") || nextArtPath.endsWith(".jpeg")
 
     function switchPanel(direction) {
         if (root.bar && typeof root.bar.switchPanelFrom === "function")
@@ -46,7 +45,7 @@ Panel {
             id: backgroundArt
             anchors.fill: parent
             anchors.margins: -panel.padding
-            visible: root.nextArtIsPhoto && root.next !== null
+            visible: root.nextArtPath !== ""
             source: Qt.resolvedUrl(root.nextArtPath)
             sourceSize.width: Math.round(width * Screen.devicePixelRatio)
             sourceSize.height: Math.round(height * Screen.devicePixelRatio)

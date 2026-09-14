@@ -11,20 +11,26 @@ function nextLaunch(cache) {
     return cache && Array.isArray(cache.launches) ? cache.launches[0] || null : null;
 }
 
-function rocketArt(launch) {
+function rocketArt(launch, random = Math.random) {
     if (!launch)
         return "";
 
+    let images;
     switch (launch.rocketFamily) {
     case "Falcon 9":
-        return "assets/F9_2_mobile.jpg";
+        images = ["assets/falcon-diagonal.png", "assets/falcon-elevation.png", "assets/falcon-study.png"];
+        break;
     case "Falcon Heavy":
-        return "assets/FH_8_mobile.jpg";
+        images = ["assets/heavy-diagonal.png", "assets/heavy-elevation.png", "assets/heavy-study.png"];
+        break;
     case "Starship":
-        return "assets/starship.jpeg";
+        images = ["assets/starship-diagonal.png", "assets/starship-elevation.png", "assets/starship-study.png"];
+        break;
     default:
         return "";
     }
+
+    return images[Math.floor(random() * images.length)];
 }
 
 function formatCountdown(ms) {
