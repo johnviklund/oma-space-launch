@@ -4,6 +4,35 @@ An Omarchy bar-widget plugin that shows a persistent countdown to the next Space
 top bar, with a click-to-open detail panel — following the same pattern as Omarchy's built-in
 Clock and Weather widgets.
 
+![Space Launch panel](preview.png)
+
+## Install
+
+```bash
+omarchy plugin add https://github.com/johnviklund/oma-space-launch --enable
+```
+
+Or add it without `--enable`, review the code, then run
+`omarchy plugin enable oma-space-launch --section center`.
+
+## Remove
+
+```bash
+omarchy plugin remove oma-space-launch
+rm -rf "${XDG_CACHE_HOME:-$HOME/.cache}/oma-space-launch"   # optional: cached launch data
+```
+
+## Dependencies
+
+- `curl` and `jq` (preinstalled on Omarchy) — used by `scripts/fetch-launches.sh`.
+- Network access to the public [Launch Library 2](https://thespacedevs.com/llapi) API
+  (`ll.thespacedevs.com`), polled at most every 15 minutes and cached under
+  `${XDG_CACHE_HOME:-~/.cache}/oma-space-launch/`.
+
+## License
+
+[MIT](LICENSE)
+
 ## Docs
 
 | Doc | What it's for |
