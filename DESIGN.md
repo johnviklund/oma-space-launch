@@ -24,7 +24,9 @@ Everything below is content/structure this plugin owns inside the inherited shel
 
 **Panel layout** (top to bottom):
 1. The next-launch hero shows a section label, countdown, mission, WHEN/SITE/ROCKET fields,
-   and a launch-page link. Exact times use the viewer's system timezone.
+   and one launch link. Exact times use the viewer's system timezone.
+   A STATUS row immediately below WHEN shows `Hold` for status 5, `TBC` for status 8,
+   or `In flight` for status 6. Other statuses have no row. It uses the same label and value styling as the other fields.
    A launch photo matches the rocket family: `assets/falcon-launchpad.jpg` for Falcon 9,
    `assets/heavy-launchpad.jpg` for Falcon Heavy, and `assets/starship-launchpad.jpg` for Starship.
    Each JPEG is 1024×1536. No image appears for another family or when the hero is narrower
@@ -37,7 +39,7 @@ Everything below is content/structure this plugin owns inside the inherited shel
 2. Below a `PanelSeparator`, an "UPCOMING" section listing up to three further scheduled launches
    in data-source order. Each row has a date/time column, a vertical divider, and a column
    with the mission above the rocket name. Dates use short local date/time or `NET <date>`/`TBD`.
-   Rows wrap text and have no site, reference link, or background art. The hero has a minimum
+   Rows wrap text and have no status, webcast, site, reference link, or background art. The hero has a minimum
    height of `Style.space(330)` when a launch exists. The panel fits its content within the
    available screen; a clipped `Flickable` scrolls when content exceeds the available height.
 3. When an entry's pill-equivalent state is `NET`/`TBD`/`Launching`, its own fields reflect that
@@ -52,8 +54,12 @@ Everything below is content/structure this plugin owns inside the inherited shel
    The accent-colored launch link uses 0.98 stale versus 1 fresh. These values keep stale text
    at least 3:1 against the background in the 23 bundled themes.
 
-**Reference link fallback:** launch-specific page when the data source provides one; otherwise
-the data source's own generic reference URL; otherwise SpaceX's general launches page.
+**Launch link:** `Watch launch →` opens the webcast when one exists. Otherwise,
+`Open SpaceX launch page →` opens the existing reference URL, with the SpaceX launches page as its fallback.
+There is always only one link. Hover or keyboard focus underlines it.
+The first Tab in an open panel focuses it; Enter or Space opens it. The next Tab switches panels through the host.
+Escape still closes the panel. The accessible role is Link, named `Watch launch webcast`
+or `Open SpaceX launch page` to match the destination.
 
 ## Open design questions
 

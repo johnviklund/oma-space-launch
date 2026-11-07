@@ -48,7 +48,7 @@ now_seconds="$(date -u +%s)"
 if ! "$force_refresh" && [[ -f "$cache_path" ]]; then
     cache_mtime="$(stat -c %Y "$cache_path")"
     if ((now_seconds - cache_mtime < CACHE_TTL_SECONDS)) \
-        && jq -e '.schemaVersion == 2' "$cache_path" >/dev/null 2>&1; then
+        && jq -e '.schemaVersion == 3' "$cache_path" >/dev/null 2>&1; then
         exit 0
     fi
 fi
@@ -86,13 +86,14 @@ printf '%s' "$payload" | jq --arg fetchedAt "$fetched_at" --arg expiresAt "$expi
             rocketFamily: (.rocket.configuration.name // ""),
             mission: (.mission.name // ""),
             referenceUrl: (([.info_urls[]? | select(.source == "spacex.com" and (.url | type == "string") and (.url | startswith("https://"))) | .url][0]) // "https://www.spacex.com/launches/"),
+            webcastUrl: ([.vid_urls[]? | select((.url | type == "string") and (.url | startswith("https://")))] | sort_by(.priority // infinite) | .[0].url // null),
             outcomeConfirmed: false
         };
     [ .results[]?
       | select(.status.id == 1 or .status.id == 2 or .status.id == 5 or .status.id == 6 or .status.id == 8)
       | launch ] as $launches
     | {
-        schemaVersion: 2,
+        schemaVersion: 3,
         fetchedAt: $fetchedAt,
         expiresAt: $expiresAt,
         launches: $launches[:4]

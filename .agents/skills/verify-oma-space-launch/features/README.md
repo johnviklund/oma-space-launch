@@ -22,7 +22,7 @@ and the plugin's install commands (`omarchy plugin add|enable|remove`, not mappe
 
 - Start every recipe from the baseline. `$C seed` with no options restores it.
 - Stable handles only: the IPC target `oma-space-launch`, XKB keysyms for `key`, visible labels
-  (`NEXT LAUNCH`, `UPCOMING`, `WHEN`, `SITE`, `ROCKET`, `Open SpaceX launch page`). No pixel
+  (`NEXT LAUNCH`, `UPCOMING`, `WHEN`, `STATUS`, `SITE`, `ROCKET`, `Watch launch`, `Open SpaceX launch page`). No pixel
   coordinates: no pointer tool exists in the sandbox.
 - Commands in the recipes are literal; run them as written.
 - After a mutation (`seed --stale`, `--family`, another fixture), run `$C seed` to restore the
@@ -42,16 +42,16 @@ and the plugin's install commands (`omarchy plugin add|enable|remove`, not mappe
 - Every artifact names its feature id and entry point: `--feature ID --entry ENTRY` on every
   `shot` and `snapshot`.
 - An unreachable path is reported with the command tried and the missing precondition, never
-  as verified through another path. Pointer clicks, hover tooltips and the launch-page link are
+  as verified through another path. Pointer clicks and hover tooltips are
   unreachable today (no virtual-pointer tool in the sandbox); `ipc toggle`/`ipc refresh` run the
-  same functions as left and middle click, and a proof that used them says so.
+  same functions as left and middle click, and a proof that used them says so. The launch link is reachable with Tab, Return or space.
 
 ## Features
 
 - [countdown-pill](countdown-pill.md): the bar pill shows time to the next launch, or NET, TBD, Launching, Loading.
-- [next-launch-panel](next-launch-panel.md): open and close the panel with the next launch's details and rocket photo.
+- [next-launch-panel](next-launch-panel.md): open and close the panel, read launch status, and open its webcast or reference link by keyboard.
 - [upcoming-list](upcoming-list.md): the panel lists up to three further launches.
 - [stale-state](stale-state.md): old data is marked stale on the pill and in the panel.
 - [refresh](refresh.md): data refreshes on a timer, on middle click, or by IPC; a failed fetch keeps the last data.
 
-Last maintained: 2026-11-07 @ 85d3d04
+Last maintained: 2026-11-07 for v13-watch-status

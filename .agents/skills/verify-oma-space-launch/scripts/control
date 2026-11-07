@@ -30,7 +30,8 @@ RUNS_ROOT = RUNTIME / f"verify-{APP}"
 OMARCHY_PATH = Path(os.environ.get("OMARCHY_PATH") or "/usr/share/omarchy")
 THEMES_DIR = OMARCHY_PATH / "themes"
 REAL_HOME = Path.home()
-FIXTURES = ("exact", "net", "tbd", "empty")
+FIXTURES = ("exact", "net", "tbd", "empty", "webcast")
+STATUSES = {1: "Go for Launch", 2: "To Be Determined", 5: "Hold", 6: "In flight", 8: "TBC"}
 KNOWN_HARMLESS = ("is outside of the config folder", "Failed to register with host portal")
 
 SECRET_PATTERNS = [
@@ -222,7 +223,7 @@ def parent_signature():
 
 # ----------------------------------------------------------------------------- seed
 
-def build_seed(state, fixture, next_in, family, out):
+def build_seed(state, fixture, next_in, family, status, out):
     src = Path(state["repo"]) / "tests" / "fixtures" / f"ll2-{fixture}.json"
     if not src.exists():
         fail(f"fixture not found: {src}", f"use one of: {', '.join(FIXTURES)}")
@@ -242,18 +243,20 @@ def build_seed(state, fixture, next_in, family, out):
         conf = results[0].setdefault("rocket", {}).setdefault("configuration", {})
         conf["name"] = family
         conf["full_name"] = family
+    if status is not None and results:
+        results[0]["status"] = {"id": status, "name": STATUSES[status]}
     out.write_text(json.dumps(data))
     return shifted
 
 
-def seed(state, fixture, next_in, family, stale, dry_run=False):
+def seed(state, fixture, next_in, family, status, stale, dry_run=False):
     target = cache_path(state)
-    plan = {"fixture": fixture, "next_in": next_in, "family": family, "stale": stale, "cache": str(target),
+    plan = {"fixture": fixture, "next_in": next_in, "family": family, "status": status, "stale": stale, "cache": str(target),
             "via": f"{state['repo']}/scripts/fetch-launches.sh --from SEED --cache CACHE --force"}
     if dry_run:
         return {"dry_run": True, "would_write": [str(Path(state["run_dir"]) / "seed.json"), str(target)], **plan}
     seed_file = Path(state["run_dir"]) / "seed.json"
-    shifted = build_seed(state, fixture, next_in, family, seed_file)
+    shifted = build_seed(state, fixture, next_in, family, status, seed_file)
     res = run([f"{state['repo']}/scripts/fetch-launches.sh", "--from", str(seed_file), "--cache", str(target), "--force"],
               env=sandbox_env(state), timeout=30)
     if res.returncode != 0:
@@ -277,7 +280,7 @@ def summarize_cache(cache):
         "schemaVersion": cache.get("schemaVersion"),
         "fetchedAt": cache.get("fetchedAt"),
         "expiresAt": cache.get("expiresAt"),
-        "launches": [{k: l.get(k) for k in ("name", "net", "timePrecision", "statusId", "rocketFamily", "rocket", "mission")}
+        "launches": [{k: l.get(k) for k in ("name", "net", "timePrecision", "statusId", "rocketFamily", "rocket", "mission", "webcastUrl", "referenceUrl")}
                      for l in cache.get("launches") or []],
     }
 
@@ -336,7 +339,7 @@ def cmd_up(a):
     home = rd / "home"
     plan = {
         "id": run_id, "run_dir": str(rd), "repo": str(repo), "theme": str(theme_src), "size": a.size,
-        "network": a.network, "fixture": a.fixture, "next_in": a.next_in, "family": a.family, "stale": a.stale,
+        "network": a.network, "fixture": a.fixture, "next_in": a.next_in, "family": a.family, "status": a.status, "stale": a.stale,
         "steps": [
             f"write sandbox HOME {home} (bar holds only {APP}; all other first-party plugins disabled; plugin dir links to the repo)",
             f"start nested Hyprland via the session's exec on hidden workspace special:verify-{run_id}",
@@ -453,7 +456,7 @@ def cmd_up(a):
     save_state(state)
 
     # 5. seed through the repo's fetch script, then wait for ready
-    seeded = seed(state, a.fixture, a.next_in, a.family, a.stale)
+    seeded = seed(state, a.fixture, a.next_in, a.family, a.status, a.stale)
 
     def ready():
         show = run(["qs", "ipc", "--pid", str(qpid), "show"], env=nested_env(state), timeout=5).stdout
@@ -509,7 +512,7 @@ def cmd_doctor(a):
     check("revision", bool(rev), f"{rev}{' + uncommitted changes' if dirty else ''} (QML edits need `control down` + `control up` to load)")
     try:
         cache = json.loads(cache_path(state).read_text())
-        cache_ok = cache.get("schemaVersion") == 2
+        cache_ok = cache.get("schemaVersion") in (2, 3)
     except (OSError, json.JSONDecodeError):
         cache, cache_ok = None, False
     check("cache", cache_ok, f"{cache_path(state)} schemaVersion {cache.get('schemaVersion') if cache else None}",
@@ -542,7 +545,7 @@ def qml_problems(state):
 
 def cmd_seed(a):
     state = load_state(a.id)
-    emit({"ok": True, "id": state["id"], **seed(state, a.fixture, a.next_in, a.family, a.stale, a.dry_run),
+    emit({"ok": True, "id": state["id"], **seed(state, a.fixture, a.next_in, a.family, a.status, a.stale, a.dry_run),
           "next": "the widget reloads the cache file on change; take a `control snapshot`"})
 
 
@@ -800,6 +803,7 @@ def main():
         sp.add_argument("--next-in", default="14h32m",
                         help="shift all launch times so the first is this far from now: 14h32m, 30m, 3d4h, -5m (default 14h32m)")
         sp.add_argument("--family", help="override the first launch's rocket family, e.g. 'Falcon Heavy', Starship, Electron (no photo)")
+        sp.add_argument("--status", type=int, choices=STATUSES, help="override the first launch's status: 1 Go, 2 TBD, 5 Hold, 6 In flight, 8 TBC")
         sp.add_argument("--stale", action="store_true", help="set expiresAt one hour in the past (the stale state)")
 
     sp = add("up", "start an isolated, invisible instance and wait until the widget is ready; prints its id",

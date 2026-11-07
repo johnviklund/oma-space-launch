@@ -5,7 +5,7 @@ import vm from "node:vm";
 
 const model = vm.runInThisContext(`(() => {
 ${readFileSync(new URL("../Model.js", import.meta.url), "utf8")}
-return { parseCache, nextLaunch, launchPhoto, deriveState, formatCountdown, formatNetDate, formatLocalTime, launchTimeLabel, formatUpcomingLine, formatUpcomingTime };
+return { parseCache, nextLaunch, launchStatus, launchPhoto, deriveState, formatCountdown, formatNetDate, formatLocalTime, launchTimeLabel, formatUpcomingLine, formatUpcomingTime };
 })()`);
 
 const expiresAt = "2026-09-14T00:00:00Z";
@@ -16,12 +16,27 @@ function cache(next, expiry = expiresAt) {
     return { schemaVersion: 2, expiresAt: expiry, launches: next ? [next] : [] };
 }
 
-test("parseCache accepts only LaunchCacheV2 JSON with a launches array", () => {
+test("parseCache validates v2 JSON and requires a launches array", () => {
     assert.deepEqual(model.parseCache('{"schemaVersion":2,"launches":[]}'), { schemaVersion: 2, launches: [] });
     assert.equal(model.parseCache("not json"), null);
     assert.equal(model.parseCache('{"schemaVersion":1,"next":null}'), null);
     assert.equal(model.parseCache('{"schemaVersion":2}'), null);
     assert.equal(model.parseCache('{"schemaVersion":2,"launches":null}'), null);
+});
+
+test("v3 caches load while v2 caches still show their stale countdown", () => {
+    const v3 = { ...cache(exactLaunch), schemaVersion: 3 };
+    assert.deepEqual(model.parseCache(JSON.stringify(v3)), v3);
+    assert.equal(model.parseCache('{"schemaVersion":3,"launches":null}'), null);
+    assert.equal(model.parseCache('{"schemaVersion":4,"launches":[]}'), null);
+    const v2 = model.parseCache(JSON.stringify(cache(exactLaunch, "2026-09-13T11:59:59Z")));
+    assert.equal(model.deriveState(v2, now).label, "T-4h 12m · Stale");
+});
+
+test("only Hold, TBC and In flight have panel status words", () => {
+    for (const [statusId, expected] of [[5, "Hold"], [8, "TBC"], [6, "In flight"], [1, ""], [2, ""], [undefined, ""]])
+        assert.equal(model.launchStatus({ statusId }), expected);
+    assert.equal(model.launchStatus(null), "");
 });
 
 test("nextLaunch returns the first launch or null", () => {

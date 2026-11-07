@@ -17,6 +17,9 @@ Panel {
     readonly property var display: hostWidget ? hostWidget.display : Model.deriveState(cache, Date.now())
     readonly property var launches: cache && Array.isArray(cache.launches) ? cache.launches : []
     readonly property var next: Model.nextLaunch(cache)
+    readonly property string statusValue: Model.launchStatus(next)
+    readonly property bool hasWebcast: !!(next && next.webcastUrl)
+    readonly property string launchUrl: next ? (next.webcastUrl || next.referenceUrl || "") : ""
     readonly property var upcoming: launches.length > 1 ? launches.slice(1, 4) : []
     readonly property color foreground: bar ? bar.foreground : Color.foreground
     readonly property string fontFamily: bar ? bar.fontFamily : Style.font.family
@@ -86,7 +89,13 @@ Panel {
             id: keyCatcher
             anchors.fill: parent
             onCloseRequested: root.close()
-            onTabRequested: function(direction) { root.switchPanel(direction) }
+            onTabRequested: function(direction) {
+                if (direction > 0 && launchAction.visible && !launchAction.activeFocus)
+                    launchAction.forceActiveFocus(Qt.TabFocusReason)
+                else
+                    root.switchPanel(direction)
+            }
+            onActivateRequested: if (launchAction.activeFocus) launchAction.activate()
 
             Flickable {
                 id: launchScroll
@@ -160,10 +169,11 @@ Panel {
 
                                 Repeater {
                                     model: root.next ? [
-                                        { label: "WHEN", value: root.whenValue },
+                                        { label: "WHEN", value: root.whenValue }
+                                    ].concat(root.statusValue ? [{ label: "STATUS", value: root.statusValue }] : [], [
                                         { label: "SITE", value: root.next.site || "Site TBD" },
                                         { label: "ROCKET", value: root.next.rocket || "Rocket TBD" }
-                                    ] : []
+                                    ]) : []
 
                                     delegate: Row {
                                         required property var modelData
@@ -196,22 +206,32 @@ Panel {
                             }
 
                             Text {
+                                id: launchAction
                                 width: parent.width
                                 visible: root.next !== null
-                                text: "Open SpaceX launch page  →"
+                                text: root.hasWebcast ? "Watch launch  →" : "Open SpaceX launch page  →"
                                 color: Color.accent
                                 font.family: root.fontFamily
                                 font.pixelSize: root.bodySize
                                 wrapMode: Text.Wrap
-                                font.underline: launchLink.containsMouse
+                                font.underline: activeFocus || launchLink.containsMouse
                                 opacity: root.stale ? 0.98 : 1
+                                Accessible.role: Accessible.Link
+                                Accessible.name: root.hasWebcast ? "Watch launch webcast" : "Open SpaceX launch page"
+                                Accessible.focusable: true
+                                Accessible.onPressAction: activate()
+
+                                function activate() {
+                                    if (root.launchUrl)
+                                        Quickshell.execDetached(["omarchy-launch-browser", root.launchUrl])
+                                }
 
                                 MouseArea {
                                     id: launchLink
                                     anchors.fill: parent
                                     hoverEnabled: true
                                     cursorShape: Qt.PointingHandCursor
-                                    onClicked: if (root.next && root.next.referenceUrl) Quickshell.execDetached(["omarchy-launch-browser", root.next.referenceUrl])
+                                    onClicked: launchAction.activate()
                                 }
                             }
                         }

@@ -43,7 +43,7 @@ The recipe for any feature is `features/README.md`, then that feature's file. Ve
 
 | Verb | Does |
 |---|---|
-| `seed [--fixture exact\|net\|tbd\|empty] [--next-in 14h32m] [--family F] [--stale]` | rewrites the sandbox cache through the repo's own `scripts/fetch-launches.sh --from`, the same path real data takes; the widget reloads it on change |
+| `seed [--fixture NAME] [--next-in 14h32m] [--family F] [--status ID] [--stale]` | rewrites the sandbox cache through the repo's own `scripts/fetch-launches.sh --from`; `seed --help` lists fixtures and statuses, including webcast, Hold, TBC and In flight |
 | `ipc open\|close\|toggle\|refresh` | calls the widget's own `IpcHandler`; `toggle` and `refresh` are the functions a left and middle click run |
 | `key KEYSYM...` | real keyboard input via `wtype`; the open panel has focus (`Escape` closes it) |
 | `shot [--region full\|bar]`, `snapshot` | screenshot; snapshot adds OCR of the pill and screen, `panel_open`, the cache, and QML problems |

@@ -1,7 +1,7 @@
 function parseCache(text) {
     try {
         const cache = JSON.parse(text);
-        return cache && cache.schemaVersion === 2 && Array.isArray(cache.launches) ? cache : null;
+        return cache && (cache.schemaVersion === 2 || cache.schemaVersion === 3) && Array.isArray(cache.launches) ? cache : null;
     } catch (_) {
         return null;
     }
@@ -9,6 +9,18 @@ function parseCache(text) {
 
 function nextLaunch(cache) {
     return cache && Array.isArray(cache.launches) ? cache.launches[0] || null : null;
+}
+
+function launchStatus(launch) {
+    if (!launch)
+        return "";
+
+    switch (launch.statusId) {
+    case 5: return "Hold";
+    case 8: return "TBC";
+    case 6: return "In flight";
+    default: return "";
+    }
 }
 
 function formatCountdown(ms) {

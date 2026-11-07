@@ -27,14 +27,15 @@ ambient in their bar rather than something they have to go fetch.
 ## Core objects
 
 - **Launch** — a scheduled SpaceX launch: net time (exact, window, or unknown), site/pad, rocket
-  name + variant, mission name, reference URL, outcome-confirmed flag.
+  name + variant, mission name, launch status, reference URL, optional webcast URL, outcome-confirmed flag.
+  The webcast is the HTTPS video entry with the lowest priority number from Launch Library 2.
 - **Pill state** — the widget's current display mode, derived from the next launch's data
   fidelity: `countdown` (exact time known), `NET <date>` (window known, no exact time), `TBD` (no
   time set), `Launching` (T-0 reached, outcome not yet confirmed by the data source), `Stale`
   (data fetch failed; last-known state shown with a visible stale marker rather than silently as
   current).
 - **Detail panel** — the expanded view: the next launch's full set of fields (local time/NET/TBD,
-  site/pad, rocket name + variant, mission name, reference link), rendered against a faded
+  site/pad, rocket name + variant, mission name, launch link), rendered against a faded
   background image themed to that launch's rocket family (Falcon 9 / Falcon Heavy / Starship; no
   image when the rocket isn't in that set), followed by an "UPCOMING" list of up to three further
   scheduled launches as simple `<date> <time> · <rocket> · <mission>` lines.
@@ -51,9 +52,12 @@ live and passed manual QA in a running Omarchy session.
   between data refreshes, with no filtering by mission type (every scheduled launch counts).
 - Click toggles the detail panel open/closed — no separate menu, matching Clock/Weather.
 - Detail panel shows the next launch's local time (viewer's system timezone), site, rocket,
-  mission, and a reference link (SpaceX-specific when available, otherwise the data source's own
-  reference URL or a general SpaceX launches page fallback), against a faded rocket-family
+  mission, and one launch link, against a faded rocket-family
   background image, followed by a simple list of the next three launches after it.
+- The panel's link reads "Watch launch →" when a webcast exists and opens that webcast.
+  Otherwise it reads "Open SpaceX launch page →" and opens the reference URL as before.
+  Tab focuses the link, Enter or Space opens it, and the next Tab switches to the next bar panel.
+- The next launch shows a status only for Hold, TBC or In flight. Status and webcast details stay in the panel's hero.
 - When the pill is in `NET`, `TBD`, or `Launching` state, the panel reflects that same state
   rather than fabricating or showing stale details.
 - Once the data source confirms the current next launch's outcome, the widget automatically
