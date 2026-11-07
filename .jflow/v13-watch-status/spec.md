@@ -1,5 +1,5 @@
 # v13-watch-status
-Status: ready
+Status: done
 Base: 2bacbe7
 
 ## Problem

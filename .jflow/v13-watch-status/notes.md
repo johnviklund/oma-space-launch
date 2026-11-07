@@ -25,8 +25,10 @@ The independent check therefore belongs to a fresh Opus 5.5 session at high effo
 - Raw output, snapshots and temporary drivers live in `/tmp/v13-watch-status-build/`. Sandbox teardown reports `leftover_processes: []`.
   Both private accessibility processes are stopped.
 
-## Human review still needed
+## Human review
 
-The spec asks for approval of the PRODUCT.md and DESIGN.md wording and the status/focus appearance.
+On 2026-11-07, the human replied "option A approved", approving the PRODUCT.md and DESIGN.md wording,
+the status row and focused-link appearance, and completion including push. No open defect remains.
+The checker did not repeat second-Tab switching; the builder proved it with Clock in the sandbox.
 Fresh status and focused link: `/tmp/v13-watch-status-build/next-launch-panel-hold-focused-20261107-174401.png`.
 Stale status and focused link: `/tmp/v13-watch-status-build/next-launch-panel-stale-hold-focused-20261107-174420.png`.

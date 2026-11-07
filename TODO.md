@@ -9,9 +9,6 @@ brainstorm` or `workflow todo` pass.
 - Panel calm (from 2026-11-07 review): one-line upcoming rows (`Sep 20 · Starlink 15-27`, rocket
   shown only when not Falcon 9), and a relative day in WHEN ("Tomorrow · 03:00"). Relative-day
   logic must respect the UTC-calendar rule for NET dates.
-- Keyboard access to the launch link (found during `verify.create`, 2026-11-07): "Open SpaceX
-  launch page" reacts only to a mouse click. Enter and Space do nothing, and Tab switches to the
-  next bar panel instead of focusing the link.
 - Pill lags new data (found during `verify.create`, 2026-11-07): outside the last hour, `nowMs`
   ticks once a minute, so right after the cache changes the pill can be up to 60 s behind. A
   launch seeded 30 min out first showed `T-00:30:29`. Updating `nowMs` when the cache loads would
@@ -31,6 +28,8 @@ brainstorm` or `workflow todo` pass.
 (none)
 
 ## Archived
+
+Completed intake is in the [v13-watch-status archive](.jflow/v13-watch-status/TODO_ARCHIVE.md).
 
 - Panel single-detail + upcoming list + per-family launch photos: reverted the 3-launch uniform
   list back to one detailed next-launch entry + a compact "UPCOMING" list, and replaced the flat

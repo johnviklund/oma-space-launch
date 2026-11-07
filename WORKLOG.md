@@ -5,6 +5,11 @@ source of truth (git is) and not an archive — keep roughly the 15 most recent 
 older ones when appending past that (they remain in git history). Entry shape and full rules: see
 the `workflow` skill's `references/learning-worklog.md`.
 
+## 2026-11-07 · v13-watch-status · webcast link, keyboard access and launch status · GPT-6.1 Sol high
+- Added one webcast-or-reference link, keyboard and accessible actions, Hold/TBC/In flight rows, and a v3 cache that still reads v2.
+- Commits: 46c58c5 spec · 2a0861f build · d9b53c5 independent check
+- jflow: 3 sessions · 0 fix rounds · 12 rows · 0 accepted · check clean · net code +13 · tests +102 · docs +62
+
 ## 2026-11-07 · v13-cleanup · countdown formatting, smaller photos and readable stale text · GPT-6.1 Sol high
 - Replaced frozen hour-range seconds with hours/minutes, compressed photos, removed unused assets and the duplicate preview, and aligned design docs with the panel.
 - Commits: 6b16c5a build · 42b7b88 independent check · b148d6b human acceptance

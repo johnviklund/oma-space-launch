@@ -24,13 +24,8 @@ Phased initiatives to implement `PRODUCT.md`. Each item is sized to one future w
 ## v1.3
 
 From an external review (2026-11-07). Each item is one workflow run.
-Completed work is in the [v13-cleanup archive](.jflow/v13-cleanup/ROADMAP_ARCHIVE.md).
-
-- [ ] **Watch link + status word** — keep `vid_urls` and status in the fetch cache (schema bump);
-      the panel's single link becomes "Watch launch →" when a webcast exists, else the current
-      SpaceX page link (one link, never two), and is keyboard-reachable with an accessible name;
-      show one status word (Hold / TBC / In flight) only when the launch isn't Go. Needs a small
-      `PRODUCT.md` update (Launch object, panel fields).
+Completed work is in the [v13-cleanup archive](.jflow/v13-cleanup/ROADMAP_ARCHIVE.md)
+and the [v13-watch-status archive](.jflow/v13-watch-status/ROADMAP_ARCHIVE.md).
 
 **Considered and rejected (2026-11-07)** — don't re-propose without a new reason:
 - Local time for NET dates everywhere — NET dates stay on the UTC calendar on purpose (see
