@@ -67,3 +67,6 @@ labels measure 1.74. `docs/screenshots/mission-control.png` is a byte-for-byte c
 ## Human checks
 - The JPEG photos show no visible banding or blockiness in the open panel.
 - Stale text still reads as stale at a glance.
+
+## Accepted
+- Human checks and check-1 Maybes · photo quality and stale appearance accepted; labels dim only slightly; countdown minutes can lag; stale last-hour seconds tick once a minute; generation history retains PNG filenames; live proof uses the isolated shell; contrast over the photo gradient remains unmeasured · "Option A, approved" · 2026-11-07 · 6b16c5a675f8c33a5f550884b4cabae306ac412a
