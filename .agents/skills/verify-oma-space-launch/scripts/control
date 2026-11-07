@@ -1,0 +1,870 @@
+#!/usr/bin/env python3
+"""Control CLI for driving oma-space-launch in an isolated, invisible Omarchy shell.
+
+Each run is a nested Hyprland compositor with only a headless output (no window on the
+human's desktop), running its own copy of the Omarchy shell with a sandbox HOME, its own
+D-Bus session bus, a bar that holds only this plugin, and a network stub in place of curl.
+The human's real bar, cache and shell are never touched.
+
+All output is JSON. Run `control <subcommand> --help` for details and an example.
+"""
+
+import argparse
+import datetime as dt
+import json
+import os
+import re
+import secrets
+import shutil
+import signal
+import subprocess
+import sys
+import time
+from pathlib import Path
+
+APP = "oma-space-launch"
+SCRIPT = Path(__file__).resolve()
+DEFAULT_REPO = SCRIPT.parents[4]
+RUNTIME = Path(os.environ.get("XDG_RUNTIME_DIR") or f"/run/user/{os.getuid()}")
+RUNS_ROOT = RUNTIME / f"verify-{APP}"
+OMARCHY_PATH = Path(os.environ.get("OMARCHY_PATH") or "/usr/share/omarchy")
+THEMES_DIR = OMARCHY_PATH / "themes"
+REAL_HOME = Path.home()
+FIXTURES = ("exact", "net", "tbd", "empty")
+KNOWN_HARMLESS = ("is outside of the config folder", "Failed to register with host portal")
+
+SECRET_PATTERNS = [
+    (re.compile(r"(?i)\b(authorization|proxy-authorization)\s*[:=]\s*\S.*"), r"\1: ***"),
+    (re.compile(r"(?i)\bbearer\s+[A-Za-z0-9._~+/=-]+"), "Bearer ***"),
+    (re.compile(r"(?i)\b(set-cookie|cookie)\s*[:=]\s*\S.*"), r"\1: ***"),
+    (re.compile(r"(?i)\b([A-Z0-9_]*(token|secret|passw(or)?d|api[_-]?key|access[_-]?key)[A-Z0-9_]*)\s*([:=])\s*[^\s,;\"']+"), r"\1\4***"),
+]
+
+
+def mask(text):
+    if not isinstance(text, str):
+        return text
+    for pattern, repl in SECRET_PATTERNS:
+        text = pattern.sub(repl, text)
+    return text
+
+
+def mask_obj(obj):
+    if isinstance(obj, dict):
+        return {k: mask_obj(v) for k, v in obj.items()}
+    if isinstance(obj, list):
+        return [mask_obj(v) for v in obj]
+    return mask(obj)
+
+
+def emit(obj, code=0):
+    print(json.dumps(mask_obj(obj), indent=2, ensure_ascii=False))
+    sys.exit(code)
+
+
+def fail(error, fix, **extra):
+    emit({"ok": False, "error": error, "fix": fix, **extra}, 1)
+
+
+def now_iso():
+    return dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def run(cmd, env=None, timeout=20, check=False):
+    try:
+        res = subprocess.run(cmd, env=env, capture_output=True, text=True, timeout=timeout)
+    except FileNotFoundError:
+        fail(f"command not found: {cmd[0]}", f"install {cmd[0]} (Omarchy ships it by default)")
+    except subprocess.TimeoutExpired:
+        if check:
+            fail(f"timed out after {timeout}s: {' '.join(cmd)}", "run `control doctor`, then `control down` and `control up` again")
+        return subprocess.CompletedProcess(cmd, 124, "", "timeout")
+    if check and res.returncode != 0:
+        fail(f"`{' '.join(cmd)}` exited {res.returncode}: {res.stderr.strip() or res.stdout.strip()}",
+             "run `control doctor` to see which part of the run is broken")
+    return res
+
+
+def wait_for(predicate, timeout, interval=0.2):
+    end = time.time() + timeout
+    while time.time() < end:
+        value = predicate()
+        if value:
+            return value
+        time.sleep(interval)
+    return None
+
+
+def pid_alive(pid):
+    if not pid:
+        return False
+    try:
+        os.kill(int(pid), 0)
+    except (ProcessLookupError, ValueError):
+        return False
+    except PermissionError:
+        return True
+    stat = Path(f"/proc/{pid}/stat")
+    try:
+        return stat.read_text().split(") ")[1].split()[0] != "Z"
+    except (OSError, IndexError):
+        return False
+
+
+def cmdline(pid):
+    try:
+        return Path(f"/proc/{pid}/cmdline").read_bytes().replace(b"\0", b" ").decode().strip()
+    except OSError:
+        return ""
+
+
+def children(pid):
+    out = []
+    for task in Path(f"/proc/{pid}/task").glob("*"):
+        try:
+            out += [int(c) for c in (task / "children").read_text().split()]
+        except OSError:
+            pass
+    return out
+
+
+def git(repo, *args):
+    res = run(["git", "-C", str(repo), *args])
+    return res.stdout.strip() if res.returncode == 0 else ""
+
+
+def parse_duration(text):
+    m = re.fullmatch(r"(-)?(?:(\d+)d)?(?:(\d+)h)?(?:(\d+)m)?(?:(\d+)s)?", text.strip())
+    if not m or not any(m.groups()[1:]):
+        fail(f"bad duration {text!r}", "use forms like 14h32m, 30m, 3d4h, 45s or -5m (in the past)")
+    sign, d, h, mi, s = m.groups()
+    total = int(d or 0) * 86400 + int(h or 0) * 3600 + int(mi or 0) * 60 + int(s or 0)
+    return -total if sign else total
+
+
+# ----------------------------------------------------------------------------- run state
+
+def run_dir(run_id):
+    return RUNS_ROOT / run_id
+
+
+def load_state(run_id=None):
+    runs = sorted(p.name for p in RUNS_ROOT.glob("*") if (p / "state.json").exists()) if RUNS_ROOT.exists() else []
+    if run_id is None:
+        if not runs:
+            fail("no verify run is up", "start one with `control up`")
+        if len(runs) > 1:
+            fail(f"several runs are up: {', '.join(runs)}", "pass `--id ID` (see `control list`)")
+        run_id = runs[0]
+    path = run_dir(run_id) / "state.json"
+    if not path.exists():
+        fail(f"no run with id {run_id!r}", f"known runs: {', '.join(runs) or 'none'}; start one with `control up --id {run_id}`")
+    return json.loads(path.read_text())
+
+
+def save_state(state):
+    path = Path(state["run_dir"]) / "state.json"
+    tmp = path.with_suffix(".tmp")
+    tmp.write_text(json.dumps(state, indent=2))
+    os.replace(tmp, path)
+
+
+def nested_env(state):
+    env = dict(os.environ)
+    env["WAYLAND_DISPLAY"] = state["wayland_display"]
+    env["HYPRLAND_INSTANCE_SIGNATURE"] = state["hyprland_signature"]
+    return env
+
+
+def sandbox_env(state):
+    home = state["home"]
+    env = nested_env(state)
+    env.update({
+        "HOME": home,
+        "XDG_CONFIG_HOME": f"{home}/.config",
+        "XDG_CACHE_HOME": f"{home}/.cache",
+        "XDG_STATE_HOME": f"{home}/.local/state",
+        "XDG_DATA_HOME": f"{home}/.local/share",
+        "OMARCHY_PATH": str(OMARCHY_PATH),
+        "VERIFY_RUN_DIR": state["run_dir"],
+    })
+    bin_dir = f"{state['run_dir']}/bin"
+    if state.get("network") == "live":
+        bin_dir = f"{state['run_dir']}/bin-live"  # browser stubs only, real curl
+    env["PATH"] = f"{bin_dir}:{env.get('PATH', '')}"
+    env.pop("DBUS_SESSION_BUS_ADDRESS", None)
+    return env
+
+
+def cache_path(state):
+    return Path(state["home"]) / ".cache" / APP / "launches.json"
+
+
+def hyprctl_json(state, *args):
+    res = run(["hyprctl", "-j", *args], env=nested_env(state), timeout=5)
+    try:
+        return json.loads(res.stdout)
+    except json.JSONDecodeError:
+        return None
+
+
+def parent_signature():
+    sig = os.environ.get("HYPRLAND_INSTANCE_SIGNATURE")
+    if sig:
+        lock = RUNTIME / "hypr" / sig / "hyprland.lock"
+        try:
+            if pid_alive(int(lock.read_text().split()[0])):
+                return sig
+        except (OSError, ValueError, IndexError):
+            pass
+    return None
+
+
+# ----------------------------------------------------------------------------- seed
+
+def build_seed(state, fixture, next_in, family, out):
+    src = Path(state["repo"]) / "tests" / "fixtures" / f"ll2-{fixture}.json"
+    if not src.exists():
+        fail(f"fixture not found: {src}", f"use one of: {', '.join(FIXTURES)}")
+    data = json.loads(src.read_text())
+    results = data.get("results") or []
+    shifted = False
+    if next_in is not None and results and results[0].get("net"):
+        def parse(s):
+            return dt.datetime.fromisoformat(s.replace("Z", "+00:00"))
+        t0 = parse(results[0]["net"])
+        target = dt.datetime.now(dt.timezone.utc).replace(microsecond=0) + dt.timedelta(seconds=parse_duration(next_in))
+        for r in results:
+            if r.get("net"):
+                r["net"] = (parse(r["net"]) - t0 + target).strftime("%Y-%m-%dT%H:%M:%SZ")
+        shifted = True
+    if family and results:
+        conf = results[0].setdefault("rocket", {}).setdefault("configuration", {})
+        conf["name"] = family
+        conf["full_name"] = family
+    out.write_text(json.dumps(data))
+    return shifted
+
+
+def seed(state, fixture, next_in, family, stale, dry_run=False):
+    target = cache_path(state)
+    plan = {"fixture": fixture, "next_in": next_in, "family": family, "stale": stale, "cache": str(target),
+            "via": f"{state['repo']}/scripts/fetch-launches.sh --from SEED --cache CACHE --force"}
+    if dry_run:
+        return {"dry_run": True, "would_write": [str(Path(state["run_dir"]) / "seed.json"), str(target)], **plan}
+    seed_file = Path(state["run_dir"]) / "seed.json"
+    shifted = build_seed(state, fixture, next_in, family, seed_file)
+    res = run([f"{state['repo']}/scripts/fetch-launches.sh", "--from", str(seed_file), "--cache", str(target), "--force"],
+              env=sandbox_env(state), timeout=30)
+    if res.returncode != 0:
+        fail(f"fetch-launches.sh exited {res.returncode}: {res.stderr.strip()}",
+             "the seed goes through the repo's own fetch script; fix the script or the fixture, then rerun `control seed`")
+    if stale:
+        cache = json.loads(target.read_text())
+        past = dt.datetime.now(dt.timezone.utc) - dt.timedelta(hours=1)
+        cache["expiresAt"] = past.strftime("%Y-%m-%dT%H:%M:%SZ")
+        tmp = target.parent / ".launches.verify-stale"
+        tmp.write_text(json.dumps(cache, indent=2))
+        os.replace(tmp, target)
+    cache = json.loads(target.read_text())
+    return {"seeded": True, "shifted": shifted, **plan, "cache_summary": summarize_cache(cache)}
+
+
+def summarize_cache(cache):
+    if not cache:
+        return None
+    return {
+        "schemaVersion": cache.get("schemaVersion"),
+        "fetchedAt": cache.get("fetchedAt"),
+        "expiresAt": cache.get("expiresAt"),
+        "launches": [{k: l.get(k) for k in ("name", "net", "timePrecision", "statusId", "rocketFamily", "rocket", "mission")}
+                     for l in cache.get("launches") or []],
+    }
+
+
+# ----------------------------------------------------------------------------- up
+
+HYPR_CONFIG = """-- verification scaffolding written by `control up`; removed by `control down`
+hl.monitor({{ output = "", mode = "{size}", position = "auto", scale = {scale} }})
+hl.config({{
+  misc = {{ disable_hyprland_logo = true, disable_splash_rendering = true, disable_watchdog_warning = true,
+           disable_scale_notification = true, background_color = "rgb(101315)" }},
+  animations = {{ enabled = false }},
+}})
+"""
+
+CURL_STUB = """#!/bin/sh
+# verification scaffolding: the sandbox has no network; every call is logged and fails like an outage
+echo "$(date -u +%FT%TZ) curl $*" >> "{run_dir}/network.log"
+echo "verify sandbox: network disabled (curl stub)" >&2
+exit 7
+"""
+
+BROWSER_STUB = """#!/bin/sh
+# verification scaffolding: the sandbox never opens a real browser; it logs what would open
+echo "$(date -u +%FT%TZ) $(basename "$0") $*" >> "{run_dir}/launch.log"
+"""
+
+
+def cmd_up(a):
+    run_id = a.id or f"r{secrets.token_hex(3)}"
+    if not re.fullmatch(r"[a-z0-9][a-z0-9-]{0,20}", run_id):
+        fail(f"bad id {run_id!r}", "use 1-21 lowercase letters, digits or dashes")
+    rd = run_dir(run_id)
+    if (rd / "state.json").exists():
+        fail(f"run {run_id!r} already exists", f"use it, or run `control down --id {run_id}` first")
+    repo = Path(a.repo).resolve() if a.repo else DEFAULT_REPO
+    if not (repo / "manifest.json").exists() or json.loads((repo / "manifest.json").read_text()).get("id") != APP:
+        fail(f"{repo} is not an {APP} checkout", "pass `--repo PATH` pointing at the plugin's checkout or worktree")
+    if a.theme:
+        theme_src = THEMES_DIR / a.theme
+        if not (theme_src / "colors.toml").exists():
+            names = sorted(p.name for p in THEMES_DIR.iterdir() if (p / "colors.toml").exists())
+            fail(f"unknown theme {a.theme!r}", f"use one of: {', '.join(names)}")
+    else:
+        theme_src = REAL_HOME / ".local/state/omarchy/current/theme"
+    if not re.fullmatch(r"\d{3,5}x\d{3,5}", a.size):
+        fail(f"bad --size {a.size!r}", "use WIDTHxHEIGHT, e.g. 1440x900")
+    parent = parent_signature()
+    if not parent:
+        fail("no running Hyprland session found (HYPRLAND_INSTANCE_SIGNATURE unset or dead)",
+             "run from a terminal inside the Omarchy session; the nested compositor is started through it")
+    for tool in ("Hyprland", "hyprctl", "quickshell", "qs", "dbus-run-session", "grim", "jq", "flock"):
+        if not shutil.which(tool):
+            fail(f"{tool} not found on PATH", f"install {tool}; Omarchy ships it by default")
+
+    home = rd / "home"
+    plan = {
+        "id": run_id, "run_dir": str(rd), "repo": str(repo), "theme": str(theme_src), "size": a.size,
+        "network": a.network, "fixture": a.fixture, "next_in": a.next_in, "family": a.family, "stale": a.stale,
+        "steps": [
+            f"write sandbox HOME {home} (bar holds only {APP}; all other first-party plugins disabled; plugin dir links to the repo)",
+            f"start nested Hyprland via the session's exec on hidden workspace special:verify-{run_id}",
+            f"add headless output verify-{run_id} ({a.size}) and remove the nested window output, so nothing shows on the desktop",
+            "start the Omarchy shell under dbus-run-session with the sandbox HOME",
+            "seed the cache through scripts/fetch-launches.sh --from FIXTURE",
+        ],
+    }
+    if a.dry_run:
+        emit({"ok": True, "dry_run": True, **plan})
+
+    # 1. sandbox files
+    (home / ".config/omarchy/plugins").mkdir(parents=True)
+    (home / ".local/state/omarchy/current").mkdir(parents=True)
+    (home / ".cache").mkdir(parents=True)
+    (rd / "bin").mkdir()
+    (home / ".config/omarchy/plugins" / APP).symlink_to(repo)
+    (home / ".local/state/omarchy/current/theme").symlink_to(theme_src)
+    if not a.theme and (REAL_HOME / ".config/omarchy/shell.toml").exists():
+        (home / ".config/omarchy/shell.toml").symlink_to(REAL_HOME / ".config/omarchy/shell.toml")
+    disabled = []
+    for manifest in list((OMARCHY_PATH / "shell/plugins").glob("*/manifest.json")) + \
+            list((OMARCHY_PATH / "shell/plugins/services").glob("*/manifest.json")):
+        try:
+            pid_ = json.loads(manifest.read_text()).get("id")
+        except (OSError, json.JSONDecodeError):
+            continue
+        if pid_ and pid_ != "omarchy.bar":
+            disabled.append(pid_)
+    shell_json = {
+        "version": 1, "idle": {"screensaver": 0, "lock": 0},
+        "bar": {"position": "top", "background": "opaque",
+                "layout": {"left": [], "centerBegin": [], "center": [{"id": APP}], "centerEnd": [], "right": []}},
+        "plugins": [], "disabledPlugins": sorted(set(disabled)),
+    }
+    (home / ".config/omarchy/shell.json").write_text(json.dumps(shell_json, indent=2))
+    (rd / "bin-live").mkdir()
+    stub = rd / "bin/curl"
+    stub.write_text(CURL_STUB.format(run_dir=rd))
+    stub.chmod(0o755)
+    (rd / "network.log").touch()
+    (rd / "launch.log").touch()
+    for d in ("bin", "bin-live"):
+        for name in ("omarchy-launch-browser", "xdg-open"):
+            b = rd / d / name
+            b.write_text(BROWSER_STUB.format(run_dir=rd))
+            b.chmod(0o755)
+    scale = 1
+    (rd / "hyprland.lua").write_text(HYPR_CONFIG.format(size=a.size, scale=scale))
+    launcher = rd / "launch-hyprland.sh"
+    launcher.write_text(
+        "#!/bin/sh\n# verification scaffolding: started by the session's exec, records its pid, becomes Hyprland\n"
+        f"echo $$ > '{rd}/hyprland.pid'\n"
+        f"exec env -u HYPRLAND_INSTANCE_SIGNATURE HOME='{home}' XDG_CONFIG_HOME='{home}/.config' "
+        f"Hyprland -c '{rd}/hyprland.lua' > '{rd}/hyprland.log' 2>&1\n")
+    launcher.chmod(0o755)
+    state = {"id": run_id, "run_dir": str(rd), "home": str(home), "repo": str(repo), "theme": str(theme_src),
+             "size": a.size, "network": a.network, "monitor": f"verify-{run_id}", "started_at": now_iso(),
+             "parent_signature": parent, "hyprland_pid": None, "hyprland_signature": "", "wayland_display": "",
+             "shell_pgid": None, "shell_pid": None}
+    save_state(state)
+
+    def abort(error, fix):
+        teardown(state)
+        fail(error, fix, run_dir=str(rd))
+
+    # 2. nested compositor, hidden on a special workspace of the real session
+    lua = f"hl.exec_cmd('{launcher}', {{ workspace = 'special:verify-{run_id} silent' }})"
+    res = run(["hyprctl", "eval", lua], timeout=5)
+    if res.returncode != 0 or "ok" not in res.stdout:
+        abort(f"session refused to start the nested compositor: {res.stdout.strip()} {res.stderr.strip()}",
+              "check `hyprctl eval` works in this Hyprland version")
+    pid = wait_for(lambda: (rd / "hyprland.pid").exists() and (rd / "hyprland.pid").read_text().strip(), 10)
+    if not pid:
+        abort("nested Hyprland never started", f"read {rd}/hyprland.log")
+    state["hyprland_pid"] = int(pid)
+    save_state(state)
+
+    def find_sig():
+        for lock in (RUNTIME / "hypr").glob("*/hyprland.lock"):
+            try:
+                lines = lock.read_text().split()
+            except OSError:
+                continue
+            if lines and lines[0] == str(pid) and len(lines) > 1:
+                return lock.parent.name, lines[1]
+        return None
+    found = wait_for(find_sig, 15)
+    if not found:
+        abort("nested Hyprland did not come up", f"read {rd}/hyprland.log")
+    state["hyprland_signature"], state["wayland_display"] = found
+    save_state(state)
+
+    # 3. headless output only
+    env = nested_env(state)
+    run(["hyprctl", "output", "create", "headless", state["monitor"]], env=env, check=True)
+    if not wait_for(lambda: any(m.get("name") == state["monitor"] for m in hyprctl_json(state, "monitors") or []), 5):
+        abort("headless output never appeared", "run `hyprctl -j monitors` against the nested instance")
+    for m in hyprctl_json(state, "monitors") or []:
+        if m.get("name") != state["monitor"]:
+            run(["hyprctl", "output", "remove", m["name"]], env=env, check=True)
+
+    # 4. shell
+    log = open(rd / "shell.log", "w")
+    proc = subprocess.Popen(["dbus-run-session", "--", "quickshell", "-p", str(OMARCHY_PATH / "shell")],
+                            env=sandbox_env(state), stdout=log, stderr=subprocess.STDOUT,
+                            stdin=subprocess.DEVNULL, start_new_session=True, cwd=str(rd))
+    state["shell_pgid"] = proc.pid
+    save_state(state)
+    qpid = wait_for(lambda: next((c for c in children(proc.pid) if "quickshell" in cmdline(c)), None), 10)
+    if not qpid:
+        abort("quickshell did not start", f"read {rd}/shell.log")
+    state["shell_pid"] = qpid
+    save_state(state)
+
+    # 5. seed through the repo's fetch script, then wait for ready
+    seeded = seed(state, a.fixture, a.next_in, a.family, a.stale)
+
+    def ready():
+        show = run(["qs", "ipc", "--pid", str(qpid), "show"], env=nested_env(state), timeout=5).stdout
+        layers = json.dumps(hyprctl_json(state, "layers") or {})
+        return f"target {APP}" in show and "omarchy-bar" in layers
+    if not wait_for(ready, 20, 0.5):
+        abort(f"shell started but the {APP} bar widget never registered", f"read {rd}/shell.log for QML errors")
+    time.sleep(1.5)  # first frame + cache FileView load
+    emit({"ok": True, "id": run_id, "ready": True, "monitor": state["monitor"], "wayland_display": state["wayland_display"],
+          "repo": str(repo), "revision": git(repo, "rev-parse", "--short", "HEAD"),
+          "dirty": bool(git(repo, "status", "--porcelain")), "theme": str(theme_src), "network": a.network,
+          "seed": seeded, "next": "run `control doctor`"})
+
+
+# ----------------------------------------------------------------------------- doctor
+
+def cmd_doctor(a):
+    state = load_state(a.id)
+    checks = []
+
+    def check(name, ok, detail="", fix=""):
+        checks.append({"check": name, "ok": bool(ok), "detail": detail, **({"fix": fix} if not ok and fix else {})})
+
+    hp = state.get("hyprland_pid")
+    check("nested-hyprland", pid_alive(hp) and state["run_dir"] in cmdline(hp), f"pid {hp}",
+          "the nested compositor is gone: `control down` then `control up`")
+    lock = RUNTIME / "hypr" / state["hyprland_signature"] / "hyprland.lock"
+    check("nested-socket", lock.exists() and (RUNTIME / state["wayland_display"]).exists(),
+          f"{state['wayland_display']} / {state['hyprland_signature']}", "`control down` then `control up`")
+    mons = [m.get("name") for m in (hyprctl_json(state, "monitors") or [])]
+    check("headless-only", mons == [state["monitor"]], f"monitors {mons}",
+          "a nested window output is still mapped on the desktop: `control down` then `control up`")
+    parent_env = dict(os.environ, HYPRLAND_INSTANCE_SIGNATURE=state["parent_signature"])
+    res = run(["hyprctl", "-j", "clients"], env=parent_env, timeout=5)
+    try:
+        visible = [c for c in json.loads(res.stdout) if c.get("pid") == hp]
+    except json.JSONDecodeError:
+        visible = []
+    check("invisible-on-desktop", not visible, f"{len(visible)} window(s) of this run on the real desktop",
+          "`control down`; the run should never own a desktop window")
+    sp = state.get("shell_pid")
+    check("shell", pid_alive(sp) and "quickshell" in cmdline(sp), f"pid {sp}",
+          "the shell crashed: read `control logs`, then `control down` and `control up`")
+    show = run(["qs", "ipc", "--pid", str(sp), "show"], env=nested_env(state), timeout=5).stdout if pid_alive(sp) else ""
+    check("widget-ipc", f"target {APP}" in show, f"ipc target {APP} {'registered' if f'target {APP}' in show else 'missing'}",
+          "the plugin did not load: read `control logs --grep oma-space-launch`")
+    link = Path(state["home"]) / ".config/omarchy/plugins" / APP
+    target = os.path.realpath(link)
+    check("plugin-source", target == os.path.realpath(state["repo"]), f"{link} -> {target}",
+          "the sandbox plugin link is wrong: `control down` then `control up --repo PATH`")
+    rev = git(state["repo"], "rev-parse", "--short", "HEAD")
+    dirty = bool(git(state["repo"], "status", "--porcelain"))
+    check("revision", bool(rev), f"{rev}{' + uncommitted changes' if dirty else ''} (QML edits need `control down` + `control up` to load)")
+    try:
+        cache = json.loads(cache_path(state).read_text())
+        cache_ok = cache.get("schemaVersion") == 2
+    except (OSError, json.JSONDecodeError):
+        cache, cache_ok = None, False
+    check("cache", cache_ok, f"{cache_path(state)} schemaVersion {cache.get('schemaVersion') if cache else None}",
+          "reseed with `control seed --fixture exact --next-in 14h32m`")
+    errors = qml_problems(state)
+    check("qml-clean", not errors, f"{len(errors)} warning/error line(s) naming the plugin", "read `control logs --grep oma-space-launch`")
+    ok = all(c["ok"] for c in checks)
+    emit({"ok": ok, "id": state["id"], "network": state["network"], "checks": checks,
+          **({"qml_problems": errors[:10]} if errors else {}),
+          "next": "drive it: see features/README.md" if ok else "fix the failing check before driving"}, 0 if ok else 1)
+
+
+def qml_problems(state):
+    try:
+        lines = (Path(state["run_dir"]) / "shell.log").read_text(errors="replace").splitlines()
+    except OSError:
+        return []
+    ansi = re.compile(r"\x1b\[[0-9;]*m")
+    out = []
+    for line in lines:
+        clean = ansi.sub("", line)
+        if re.search(r"\b(WARN|ERROR|CRIT|FATAL)\b|TypeError|ReferenceError|is not defined|Cannot assign", clean) \
+                and (APP in clean or "Panel.qml" in clean or "BarWidget.qml" in clean or "Model.js" in clean) \
+                and not any(h in clean for h in KNOWN_HARMLESS):
+            out.append(clean.strip())
+    return out
+
+
+# ----------------------------------------------------------------------------- drive
+
+def cmd_seed(a):
+    state = load_state(a.id)
+    emit({"ok": True, "id": state["id"], **seed(state, a.fixture, a.next_in, a.family, a.stale, a.dry_run),
+          "next": "the widget reloads the cache file on change; take a `control snapshot`"})
+
+
+def cmd_ipc(a):
+    state = load_state(a.id)
+    cmd = ["qs", "ipc", "--pid", str(state["shell_pid"]), "call", APP, a.method]
+    if a.dry_run:
+        emit({"ok": True, "dry_run": True, "would_run": " ".join(cmd),
+              "side_effects": "refresh runs scripts/fetch-launches.sh --force inside the sandbox" if a.method == "refresh" else "panel visibility only"})
+    res = run(cmd, env=nested_env(state), timeout=5)
+    if res.returncode != 0:
+        fail(f"ipc call failed: {res.stderr.strip() or res.stdout.strip()}", "run `control doctor`")
+    note = None
+    if a.method == "refresh":
+        note = ("network is stubbed: the fetch fails like an outage after the script's 120 s retry and the cache is kept; "
+                "check `network.log` via `control logs --network`") if state["network"] == "stub" else \
+               "live network: the real Launch Library 2 API is called and the cache overwritten"
+    time.sleep(a.settle)
+    emit({"ok": True, "id": state["id"], "called": f"{APP}.{a.method}", **({"note": note} if note else {}),
+          "next": "take a `control snapshot` to see the result"})
+
+
+def cmd_key(a):
+    state = load_state(a.id)
+    if not shutil.which("wtype"):
+        fail("wtype not found", "install wtype (Omarchy ships it) to send keys")
+    cmds = [["wtype", "-k", k] for k in a.keys]
+    if a.dry_run:
+        emit({"ok": True, "dry_run": True, "would_run": [" ".join(c) for c in cmds], "target": state["wayland_display"]})
+    for c in cmds:
+        res = run(c, env=nested_env(state), timeout=5)
+        if res.returncode != 0:
+            fail(f"`{' '.join(c)}` failed: {res.stderr.strip()}", "use XKB keysym names: Escape, Tab, Return, Down, j, k")
+        time.sleep(0.15)
+    time.sleep(a.settle)
+    emit({"ok": True, "id": state["id"], "sent": a.keys,
+          "note": "keys go to whatever has keyboard focus in the sandbox; the panel takes focus when open",
+          "next": "take a `control snapshot`; link activations land in `control logs --launches`"})
+
+
+def evidence_dir(out, state):
+    d = Path(out) if out else Path(state["repo"]) / ".verify-evidence"
+    d.mkdir(parents=True, exist_ok=True)
+    return d
+
+
+def evidence_name(a, kind):
+    stamp = dt.datetime.now().strftime("%Y%m%d-%H%M%S")
+    parts = [p for p in (a.feature, a.name or kind, stamp) if p]
+    return "-".join(re.sub(r"[^A-Za-z0-9_.-]+", "-", p) for p in parts)
+
+
+def grab(state, path):
+    res = run(["grim", "-o", state["monitor"], str(path)], env=nested_env(state), timeout=10)
+    if res.returncode != 0:
+        fail(f"grim failed: {res.stderr.strip()}", "run `control doctor`; the headless output may be gone")
+
+
+def bar_height(state):
+    """The bar's exclusive zone, from the monitor's reserved area (the bar layer itself is full-screen)."""
+    for m in hyprctl_json(state, "monitors") or []:
+        if m.get("name") == state["monitor"]:
+            top = (m.get("reserved") or [0, 0, 0, 0])[1]
+            if 10 <= top <= 120:
+                return top
+    return 32
+
+
+def crop(src, dst, geometry, scale=None, gray=False):
+    cmd = ["magick", str(src), "-crop", geometry, "+repage"]
+    if gray:
+        cmd += ["-colorspace", "gray"]
+    if scale:
+        cmd += ["-resize", f"{scale}%"]
+    run(cmd + [str(dst)], check=True)
+
+
+def write_sidecar(path, state, a, extra):
+    meta = {"feature": a.feature, "entry": a.entry, "captured_at": now_iso(), "run": state["id"],
+            "repo": state["repo"], "revision": git(state["repo"], "rev-parse", "--short", "HEAD"),
+            "dirty": bool(git(state["repo"], "status", "--porcelain")), "theme": state["theme"],
+            "network": state["network"], **extra}
+    path.write_text(json.dumps(mask_obj(meta), indent=2, ensure_ascii=False))
+    return meta
+
+
+def cmd_shot(a):
+    state = load_state(a.id)
+    out = evidence_dir(a.out, state) if not a.dry_run else Path(a.out or Path(state["repo"]) / ".verify-evidence")
+    name = evidence_name(a, "shot")
+    png = out / f"{name}.png"
+    if a.dry_run:
+        emit({"ok": True, "dry_run": True, "would_write": [str(png), str(out / f"{name}.json")]})
+    grab(state, png)
+    if a.region == "bar":
+        w, _ = state["size"].split("x")
+        crop(png, png, f"{w}x{bar_height(state)}+0+0")
+    meta = write_sidecar(out / f"{name}.json", state, a, {"image": png.name, "region": a.region})
+    emit({"ok": True, "image": str(png), "meta": str(out / f"{name}.json"), "feature": meta["feature"], "entry": meta["entry"]})
+
+
+def ocr(path, psm):
+    if not shutil.which("tesseract"):
+        return None
+    res = run(["tesseract", str(path), "-", "--psm", str(psm)], timeout=30)
+    return mask(res.stdout.strip()) if res.returncode == 0 else None
+
+
+def cmd_snapshot(a):
+    state = load_state(a.id)
+    out = evidence_dir(a.out, state) if not a.dry_run else Path(a.out or Path(state["repo"]) / ".verify-evidence")
+    name = evidence_name(a, "snapshot")
+    png = out / f"{name}.png"
+    if a.dry_run:
+        emit({"ok": True, "dry_run": True, "would_write": [str(png), str(out / f"{name}.json"), str(out / f"{name}.txt")]})
+    grab(state, png)
+    w, h = (int(x) for x in state["size"].split("x"))
+    bh = bar_height(state)
+    tmp_bar, tmp_body = Path(state["run_dir"]) / "ocr-bar.png", Path(state["run_dir"]) / "ocr-body.png"
+    crop(png, tmp_bar, f"{w}x{bh}+0+0", scale=300)
+    crop(png, tmp_body, f"{w}x{h - bh}+0+{bh}", scale=200, gray=True)
+    pill = ocr(tmp_bar, 7)
+    body = ocr(tmp_body, 6)
+    namespaces = sorted({l.get("namespace") for lv in (hyprctl_json(state, "layers") or {}).get(state["monitor"], {}).get("levels", {}).values() for l in lv})
+    try:
+        cache = json.loads(cache_path(state).read_text())
+    except (OSError, json.JSONDecodeError):
+        cache = None
+    snap = {"pill_text": pill, "panel_open": "omarchy-keyboard-panel" in namespaces, "screen_text": body,
+            "layers": namespaces, "cache": summarize_cache(cache), "qml_problems": qml_problems(state),
+            "ocr_note": "text is OCR of the screenshot: assert on substrings, expect small glyph errors (5/S, 0/O)" if pill is not None else "tesseract missing: no OCR text"}
+    write_sidecar(out / f"{name}.json", state, a, {"image": png.name, **snap})
+    (out / f"{name}.txt").write_text(f"PILL: {pill}\nPANEL OPEN: {snap['panel_open']}\n\n{body or ''}\n")
+    emit({"ok": True, "image": str(png), "meta": str(out / f"{name}.json"), "feature": a.feature, "entry": a.entry, **snap})
+
+
+def cmd_logs(a):
+    state = load_state(a.id)
+    src = Path(state["run_dir"]) / ("network.log" if a.network else "launch.log" if a.launches else "shell.log")
+    ansi = re.compile(r"\x1b\[[0-9;]*m")
+    lines = [ansi.sub("", l) for l in src.read_text(errors="replace").splitlines()] if src.exists() else []
+    if a.grep:
+        lines = [l for l in lines if re.search(a.grep, l)]
+    lines = [mask(l) for l in lines[-a.tail:]]
+    if a.out:
+        d = evidence_dir(a.out, state)
+        (d / f"{state['id']}-{src.name}").write_text("\n".join(lines) + "\n")
+    emit({"ok": True, "file": str(src), "lines": lines})
+
+
+def cmd_list(a):
+    runs = []
+    for p in sorted(RUNS_ROOT.glob("*/state.json")) if RUNS_ROOT.exists() else []:
+        s = json.loads(p.read_text())
+        runs.append({"id": s["id"], "started_at": s["started_at"], "repo": s["repo"],
+                     "alive": pid_alive(s.get("hyprland_pid")) and pid_alive(s.get("shell_pid"))})
+    emit({"ok": True, "runs": runs})
+
+
+# ----------------------------------------------------------------------------- down
+
+def owned_processes(home):
+    """Processes of this uid whose environment carries this run's sandbox HOME: only what `up` started."""
+    marker = f"HOME={home}".encode()
+    found = []
+    for p in Path("/proc").glob("[0-9]*"):
+        try:
+            if p.stat().st_uid != os.getuid():
+                continue
+            if marker in (p / "environ").read_bytes().split(b"\0"):
+                found.append(int(p.name))
+        except OSError:
+            continue
+    return [pid for pid in found if pid != os.getpid()]
+
+
+def teardown(state, dry_run=False):
+    rd = Path(state["run_dir"])
+    hp, pg, sp = state.get("hyprland_pid"), state.get("shell_pgid"), state.get("shell_pid")
+    procs = owned_processes(state["home"])
+    sig_dir = RUNTIME / "hypr" / state["hyprland_signature"] if state.get("hyprland_signature") else None
+    qs_link = RUNTIME / "quickshell/by-pid" / str(sp) if sp else None
+    plan = {"stop_processes": sorted(set(procs + ([hp] if hp and pid_alive(hp) else []))),
+            "remove": [str(rd)] + ([str(sig_dir)] if sig_dir else []) + ([str(qs_link)] if qs_link else []),
+            "evidence_kept": "evidence lives in --out directories and .verify-evidence/, which down never touches"}
+    if dry_run:
+        return plan
+    if pg and pid_alive(pg):
+        try:
+            os.killpg(pg, signal.SIGTERM)
+        except (ProcessLookupError, PermissionError):
+            pass
+    for pid in owned_processes(state["home"]):
+        try:
+            os.kill(pid, signal.SIGTERM)
+        except ProcessLookupError:
+            pass
+    if hp and pid_alive(hp) and str(rd) in cmdline(hp):
+        os.kill(hp, signal.SIGTERM)
+    wait_for(lambda: not owned_processes(state["home"]) and not (hp and pid_alive(hp)), 5)
+    for pid in owned_processes(state["home"]) + ([hp] if hp and pid_alive(hp) and str(rd) in cmdline(hp) else []):
+        try:
+            os.kill(pid, signal.SIGKILL)
+        except ProcessLookupError:
+            pass
+    wait_for(lambda: not owned_processes(state["home"]), 3)
+    if sig_dir and sig_dir.exists() and not (sig_dir / "hyprland.lock").exists():
+        shutil.rmtree(sig_dir, ignore_errors=True)
+    if qs_link and qs_link.is_symlink():
+        target = Path(os.readlink(qs_link))
+        qs_link.unlink(missing_ok=True)
+        if target.is_dir() and target.parent == RUNTIME / "quickshell/by-id":
+            shutil.rmtree(target, ignore_errors=True)
+    shutil.rmtree(rd, ignore_errors=True)
+    try:
+        RUNS_ROOT.rmdir()  # only when no other run is up
+    except OSError:
+        pass
+    leftover = owned_processes(state["home"])
+    return {**plan, "leftover_processes": leftover}
+
+
+def cmd_down(a):
+    state = load_state(a.id)
+    if a.save_logs and not a.dry_run:
+        d = evidence_dir(a.save_logs, state)
+        for f in ("shell.log", "network.log", "launch.log", "hyprland.log"):
+            src = Path(state["run_dir"]) / f
+            if src.exists():
+                (d / f"{state['id']}-{f}").write_text(mask(src.read_text(errors="replace")))
+    result = teardown(state, a.dry_run)
+    ok = a.dry_run or not result.get("leftover_processes")
+    emit({"ok": ok, "id": state["id"], "dry_run": a.dry_run, **result}, 0 if ok else 1)
+
+
+# ----------------------------------------------------------------------------- argparse
+
+def main():
+    fmt = argparse.RawDescriptionHelpFormatter
+    p = argparse.ArgumentParser(prog="control", formatter_class=fmt, description=__doc__, epilog="""example:
+  control up --fixture exact --next-in 14h32m
+  control doctor
+  control ipc open
+  control snapshot --feature countdown-pill --entry ipc-open
+  control down""")
+    sub = p.add_subparsers(dest="cmd", required=True, metavar="SUBCOMMAND")
+
+    def add(name, help_, example, func):
+        sp = sub.add_parser(name, help=help_, description=help_, formatter_class=fmt, epilog=f"example:\n  {example}")
+        sp.set_defaults(func=func)
+        return sp
+
+    def seed_args(sp):
+        sp.add_argument("--fixture", choices=FIXTURES, default="exact", help="tests/fixtures/ll2-NAME.json (default exact: 4 launches, F9/F9/FH/Starship)")
+        sp.add_argument("--next-in", default="14h32m",
+                        help="shift all launch times so the first is this far from now: 14h32m, 30m, 3d4h, -5m (default 14h32m)")
+        sp.add_argument("--family", help="override the first launch's rocket family, e.g. 'Falcon Heavy', Starship, Electron (no photo)")
+        sp.add_argument("--stale", action="store_true", help="set expiresAt one hour in the past (the stale state)")
+
+    sp = add("up", "start an isolated, invisible instance and wait until the widget is ready; prints its id",
+             "control up --id demo --fixture exact --next-in 14h32m --theme rose-pine", cmd_up)
+    sp.add_argument("--id", help="run id (default random); several runs can be up side by side")
+    sp.add_argument("--repo", help=f"plugin checkout or worktree to load (default {DEFAULT_REPO})")
+    sp.add_argument("--theme", help="an Omarchy theme name under /usr/share/omarchy/themes (default: your current theme, read-only)")
+    sp.add_argument("--size", default="1440x900", help="headless output size (default 1440x900)")
+    sp.add_argument("--network", choices=("stub", "live"), default="stub",
+                    help="stub (default): curl is replaced by a logging stub that fails like an outage; live: real API")
+    seed_args(sp)
+    sp.add_argument("--dry-run", action="store_true", help="print the plan, start nothing")
+
+    sp = add("doctor", "read-only health check; exit 0 only when the instance is worth driving", "control doctor --id demo", cmd_doctor)
+    sp.add_argument("--id")
+
+    sp = add("seed", "rewrite the sandbox cache through the repo's fetch script from a fixture", "control seed --fixture exact --next-in 30m --family Starship --stale", cmd_seed)
+    sp.add_argument("--id")
+    seed_args(sp)
+    sp.add_argument("--dry-run", action="store_true")
+
+    sp = add("ipc", f"call the widget's own IpcHandler ({APP}.METHOD): the same functions a left click (toggle) and middle click (refresh) run",
+             "control ipc open", cmd_ipc)
+    sp.add_argument("method", choices=("open", "close", "toggle", "show", "hide", "refresh"))
+    sp.add_argument("--id")
+    sp.add_argument("--settle", type=float, default=0.8, help="seconds to wait for the UI to settle (default 0.8)")
+    sp.add_argument("--dry-run", action="store_true")
+
+    sp = add("key", "send keys (XKB keysym names) to the sandbox with wtype; the open panel has keyboard focus",
+             "control key Tab Return", cmd_key)
+    sp.add_argument("keys", nargs="+", metavar="KEYSYM")
+    sp.add_argument("--id")
+    sp.add_argument("--settle", type=float, default=0.8)
+    sp.add_argument("--dry-run", action="store_true")
+
+    for name, func, help_ in (("shot", cmd_shot, "screenshot the headless output to --out"),
+                              ("snapshot", cmd_snapshot, "screenshot plus text: OCR of pill and screen, panel open/closed, cache, QML problems")):
+        sp = add(name, help_, f"control {name} --feature countdown-pill --entry ipc-open --out .workflow/SLUG/evidence", func)
+        sp.add_argument("--id")
+        sp.add_argument("--out", help="evidence directory (default .verify-evidence/ in the repo)")
+        sp.add_argument("--feature", help="feature id from features/README.md; prefixes the file name")
+        sp.add_argument("--entry", help="entry point used, e.g. ipc-open, seed, refresh")
+        sp.add_argument("--name", help="extra name part, e.g. before or after")
+        if name == "shot":
+            sp.add_argument("--region", choices=("full", "bar"), default="full")
+        sp.add_argument("--dry-run", action="store_true")
+
+    sp = add("logs", "the sandbox shell log (or the network stub log), secrets masked", "control logs --grep oma-space-launch --tail 40", cmd_logs)
+    sp.add_argument("--id")
+    sp.add_argument("--grep", help="regex filter")
+    sp.add_argument("--tail", type=int, default=60)
+    sp.add_argument("--network", action="store_true", help="show calls the curl stub received instead")
+    sp.add_argument("--launches", action="store_true", help="show URLs the browser stub received (omarchy-launch-browser, xdg-open)")
+    sp.add_argument("--out", help="also save the lines to this evidence directory")
+
+    add("list", "list runs and whether they are alive", "control list", cmd_list)
+
+    sp = add("down", "stop only what `up` started and remove its scratch state; evidence is never touched", "control down --id demo", cmd_down)
+    sp.add_argument("--id")
+    sp.add_argument("--save-logs", metavar="DIR", help="copy shell, network and compositor logs into DIR first")
+    sp.add_argument("--dry-run", action="store_true", help="list what would be stopped and removed")
+
+    a = p.parse_args()
+    a.func(a)
+
+
+if __name__ == "__main__":
+    main()

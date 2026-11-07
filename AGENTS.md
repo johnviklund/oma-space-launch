@@ -38,5 +38,8 @@ No step is "done" without running its listed check and pasting the result. The m
 validate with `omarchy plugin validate .`, and QML changes must also be manually exercised in a
 running Omarchy session per the phase's acceptance examples.
 
+Drive the running app with the `verify-oma-space-launch` skill (`.agents/skills/verify-oma-space-launch/`); start
+with its `features/README.md`.
+
 **A failing test is fixed in the code, never by editing or deleting the test.** This rule holds
 even before a real test harness exists — it applies to the first one written.

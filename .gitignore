@@ -9,3 +9,6 @@ __pycache__/
 *.pyc
 dist/
 build/
+
+# verify-oma-space-launch evidence (default --out)
+.verify-evidence/
