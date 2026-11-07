@@ -5,7 +5,7 @@ final result: passed
 ## Visual target and evidence
 
 - Selected target: `/home/johnviklund/.codex/generated_images/01a0a1ce-7906-7c60-af6a-db7c14800a60/exec-1e6c08c6-3c1c-4735-8c50-d3a9d8c9b36a.png` (option 1).
-- Final implementation: `docs/screenshots/mission-control.png`; full desktop capture: `/tmp/oma-space-launch-layout-qa/final.png`.
+- Final implementation: `preview.png`; full desktop capture: `/tmp/oma-space-launch-layout-qa/final.png`.
 - Native Omarchy/Quickshell session, 1440 × 900 desktop, scale 1, popup open with the real Falcon 9 / USSF-259 cache. This is a native panel, not a browser prototype.
 - Source image is 1586 × 992. Its desktop-equivalent scale is 1440/1586; source panel is approximately 577 × 622 at that scale. Implementation panel is 560 × 593. Desktop surroundings are excluded from the comparison.
 - Source and implementation were opened together in one comparison tool result, with the popup as the comparison region. All labels and launch rows were readable at this scale, so no additional focused crop was needed for evaluation.
@@ -16,7 +16,7 @@ final result: passed
 2. `/home/johnviklund/Pictures/screenshot-2026-09-14_23-36-21.png`: the hierarchy and artwork matched the selected direction, but 12px body text was smaller than the target (P2). Increased body text to 14px at the default theme scale, countdown to 48px, and mission to 28px.
 3. `/home/johnviklund/Pictures/screenshot-2026-09-14_23-37-34.png` and `/tmp/oma-space-launch-layout-qa/final.png`: reviewed against the source together after the correction. No remaining actionable P0/P1/P2 visual differences.
 
-4. User refinement: remove the image inset at the top and right window edges. Moved artwork behind the padded text container, extended it through the host padding to the inner border, and retained scroll clipping. `docs/screenshots/mission-control.png` was recaptured and inspected after a shell restart: both edges are flush, text padding is intact, and there are no QML/image errors. This narrow change was locally reviewed after the completed code-review receipt.
+4. User refinement: remove the image inset at the top and right window edges. Moved artwork behind the padded text container, extended it through the host padding to the inner border, and retained scroll clipping. `preview.png` was recaptured and inspected after a shell restart: both edges are flush, text padding is intact, and there are no QML/image errors. This narrow change was locally reviewed after the completed code-review receipt.
 5. User refinement: continue the artwork through the hero's trailing spacing so its lower edge meets the divider above `UPCOMING`. The saved preview was recaptured after a shell restart and shows no remaining dark gap between the image and divider.
 
 ## Required fidelity surfaces

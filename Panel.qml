@@ -127,7 +127,7 @@ Panel {
                                     text: root.stale ? Model.deriveFreshState(root.next, root.hostWidget ? root.hostWidget.nowMs : Date.now()).label : root.display.label
                                     textFormat: Text.PlainText
                                     color: root.foreground
-                                    opacity: root.stale ? 0.55 : 1
+                                    opacity: root.stale ? 0.7 : 1
                                     font.family: root.fontFamily
                                     font.pixelSize: Style.space(48)
                                     fontSizeMode: Text.Fit
@@ -140,7 +140,7 @@ Panel {
                                     text: root.next ? root.next.mission || "Mission TBD" : root.display.state === "loading" ? "Fetching launch schedule" : "No scheduled launch"
                                     textFormat: Text.PlainText
                                     color: root.foreground
-                                    opacity: root.stale ? 0.55 : 1
+                                    opacity: root.stale ? 0.7 : 1
                                     font.family: root.fontFamily
                                     font.pixelSize: Style.space(28)
                                     wrapMode: Text.Wrap
@@ -157,7 +157,6 @@ Panel {
                                 width: parent.width
                                 spacing: Style.space(14)
                                 visible: root.next !== null
-                                opacity: root.stale ? 0.55 : 1
 
                                 Repeater {
                                     model: root.next ? [
@@ -175,7 +174,7 @@ Panel {
                                             width: Style.space(66)
                                             text: modelData.label
                                             color: root.foreground
-                                            opacity: 0.65
+                                            opacity: root.stale ? 0.649 : 0.65
                                             font.family: root.fontFamily
                                             font.pixelSize: Style.font.caption
                                             font.letterSpacing: 1
@@ -187,6 +186,7 @@ Panel {
                                             text: modelData.value
                                             textFormat: Text.PlainText
                                             color: root.foreground
+                                            opacity: root.stale ? 0.7 : 1
                                             font.family: root.fontFamily
                                             font.pixelSize: root.bodySize
                                             wrapMode: Text.Wrap
@@ -204,7 +204,7 @@ Panel {
                                 font.pixelSize: root.bodySize
                                 wrapMode: Text.Wrap
                                 font.underline: launchLink.containsMouse
-                                opacity: root.stale ? 0.55 : 1
+                                opacity: root.stale ? 0.98 : 1
 
                                 MouseArea {
                                     id: launchLink
@@ -228,7 +228,6 @@ Panel {
                         width: parent.width
                         spacing: Style.space(16)
                         visible: root.upcoming.length > 0
-                        opacity: root.stale ? 0.55 : 1
 
                         SectionLabel {
                             width: parent.width
@@ -248,6 +247,7 @@ Panel {
                                     text: Model.formatUpcomingTime(modelData)
                                     textFormat: Text.PlainText
                                     color: root.foreground
+                                    opacity: root.stale ? 0.7 : 1
                                     font.family: root.fontFamily
                                     font.pixelSize: root.bodySize
                                     wrapMode: Text.Wrap
@@ -270,6 +270,7 @@ Panel {
                                         text: modelData.mission || "Mission TBD"
                                         textFormat: Text.PlainText
                                         color: root.foreground
+                                        opacity: root.stale ? 0.7 : 1
                                         font.family: root.fontFamily
                                         font.pixelSize: root.bodySize
                                         wrapMode: Text.Wrap
@@ -280,7 +281,7 @@ Panel {
                                         text: modelData.rocket || "Rocket TBD"
                                         textFormat: Text.PlainText
                                         color: root.foreground
-                                        opacity: 0.65
+                                        opacity: root.stale ? 0.649 : 0.65
                                         font.family: root.fontFamily
                                         font.pixelSize: root.bodySize
                                         wrapMode: Text.Wrap
@@ -307,6 +308,7 @@ Panel {
 
         PanelSectionHeader {
             id: sectionText
+            opacity: root.stale ? 0.85 : 1
             width: parent.width - Style.space(38)
             foreground: root.foreground
             fontFamily: root.fontFamily

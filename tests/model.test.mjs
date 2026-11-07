@@ -5,7 +5,7 @@ import vm from "node:vm";
 
 const model = vm.runInThisContext(`(() => {
 ${readFileSync(new URL("../Model.js", import.meta.url), "utf8")}
-return { parseCache, nextLaunch, rocketArt, launchPhoto, deriveState, formatCountdown, formatNetDate, formatLocalTime, launchTimeLabel, formatUpcomingLine, formatUpcomingTime };
+return { parseCache, nextLaunch, launchPhoto, deriveState, formatCountdown, formatNetDate, formatLocalTime, launchTimeLabel, formatUpcomingLine, formatUpcomingTime };
 })()`);
 
 const expiresAt = "2026-09-14T00:00:00Z";
@@ -29,28 +29,11 @@ test("nextLaunch returns the first launch or null", () => {
     assert.equal(model.nextLaunch(cache(null)), null);
 });
 
-test("rocketArt randomly selects from each supported rocket family's images", () => {
-    const families = {
-        "Falcon 9": ["assets/falcon-diagonal.png", "assets/falcon-elevation.png", "assets/falcon-study.png"],
-        "Falcon Heavy": ["assets/heavy-diagonal.png", "assets/heavy-elevation.png", "assets/heavy-study.png"],
-        "Starship": ["assets/starship-diagonal.png", "assets/starship-elevation.png", "assets/starship-study.png"]
-    };
-
-    for (const [rocketFamily, images] of Object.entries(families)) {
-        assert.equal(model.rocketArt({ rocketFamily }, () => 0), images[0]);
-        assert.equal(model.rocketArt({ rocketFamily }, () => 1 / 3), images[1]);
-        assert.equal(model.rocketArt({ rocketFamily }, () => 2 / 3), images[2]);
-    }
-
-    assert.equal(model.rocketArt(null), "");
-    assert.equal(model.rocketArt({ rocketFamily: "Falcon 1" }), "");
-});
-
 test("deriveState covers loading, stale, launching, countdown, NET, and TBD", () => {
     assert.deepEqual(model.deriveState(null, now), { state: "loading", label: "Loading", stale: false });
-    assert.deepEqual(model.deriveState(cache(exactLaunch, "2026-09-13T11:59:59Z"), now), { state: "stale", label: "T-04:12:09 · Stale", stale: true });
+    assert.deepEqual(model.deriveState(cache(exactLaunch, "2026-09-13T11:59:59Z"), now), { state: "stale", label: "T-4h 12m · Stale", stale: true });
     assert.deepEqual(model.deriveState(cache({ ...exactLaunch, net: "2026-09-13T11:59:59Z" }), now), { state: "launching", label: "Launching", stale: false });
-    assert.deepEqual(model.deriveState(cache(exactLaunch), now), { state: "countdown", label: "T-04:12:09", stale: false });
+    assert.deepEqual(model.deriveState(cache(exactLaunch), now), { state: "countdown", label: "T-4h 12m", stale: false });
     assert.deepEqual(model.deriveState(cache({ net: "2026-09-14T00:00:00Z", timePrecision: "net" }), now), { state: "net", label: "NET Sep 14", stale: false });
     assert.deepEqual(model.deriveState(cache({ net: null, timePrecision: "tbd" }), now), { state: "tbd", label: "TBD", stale: false });
 });
@@ -96,20 +79,20 @@ test("formatUpcomingLine renders a compact date, time, rocket, and mission line"
 
 test("formatters keep pill text compact", () => {
     assert.equal(model.formatCountdown(3 * 86400000 + 4 * 3600000), "T-3d 4h");
-    assert.equal(model.formatCountdown(4 * 3600000 + 12 * 60000 + 9000), "T-04:12:09");
+    assert.equal(model.formatCountdown(4 * 3600000 + 12 * 60000 + 9000), "T-4h 12m");
     assert.equal(model.formatNetDate("2026-09-14T00:00:00Z"), "Sep 14");
     assert.notEqual(model.formatLocalTime("2026-09-14T00:00:00Z"), "TBD");
 });
 
 test("launch photos follow the next launch's family and never substitute another rocket", () => {
     for (const [rocketFamily, filename] of Object.entries({
-        "Falcon 9": "falcon-launchpad.png",
-        "Falcon Heavy": "heavy-launchpad.png",
-        "Starship": "starship-launchpad.png"
+        "Falcon 9": "falcon-launchpad.jpg",
+        "Falcon Heavy": "heavy-launchpad.jpg",
+        "Starship": "starship-launchpad.jpg"
     })) {
         assert.equal(model.launchPhoto({ rocketFamily }), "assets/" + filename);
         const image = readFileSync(new URL("../" + model.launchPhoto({ rocketFamily }), import.meta.url));
-        assert.deepEqual(image.subarray(0, 8), Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]));
+        assert.deepEqual(image.subarray(0, 3), Buffer.from([255, 216, 255]));
     }
     assert.equal(model.launchPhoto(null), "");
     assert.equal(model.launchPhoto({ rocketFamily: "Falcon 1" }), "");
