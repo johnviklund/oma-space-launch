@@ -15,7 +15,12 @@ brainstorm` or `workflow todo` pass.
 - Pill lags new data (found during `verify.create`, 2026-11-07): outside the last hour, `nowMs`
   ticks once a minute, so right after the cache changes the pill can be up to 60 s behind. A
   launch seeded 30 min out first showed `T-00:30:29`. Updating `nowMs` when the cache loads would
-  fix it.
+  fix it. Also consider aligning minute updates to the countdown minute boundary; the current
+  timer can show a minute too high for up to 59 s.
+- Stale last-hour seconds (accepted at v13-cleanup close): keep the one-second tick when the
+  displayed state is stale; it currently falls back to one-minute updates.
+- Stale appearance and photo overlap (accepted at v13-cleanup close): assess clearer label
+  dimming without changing fresh appearance, and measure contrast over the hero photo gradient.
 
 ## Active Initiatives
 

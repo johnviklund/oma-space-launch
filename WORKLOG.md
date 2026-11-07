@@ -5,6 +5,11 @@ source of truth (git is) and not an archive — keep roughly the 15 most recent 
 older ones when appending past that (they remain in git history). Entry shape and full rules: see
 the `workflow` skill's `references/learning-worklog.md`.
 
+## 2026-11-07 · v13-cleanup · countdown formatting, smaller photos and readable stale text · GPT-6.1 Sol high
+- Replaced frozen hour-range seconds with hours/minutes, compressed photos, removed unused assets and the duplicate preview, and aligned design docs with the panel.
+- Commits: 6b16c5a build · 42b7b88 independent check · b148d6b human acceptance
+- jflow: 2 sessions · 0 fix rounds · 10 rows · 1 accepted · check clean · net code -19 · tests -17 · docs +330
+
 ## 2026-09-13 · launch-panel-photos · panel back to 1 detail + upcoming list, real launch photos · Anthropic · Sonnet 5
 - Reverted the 3-full-entry panel to one detailed next-launch entry (time/site/rocket/mission/
   link) + a compact "UPCOMING" list of the next three launches (`<date> <time> · <rocket> ·

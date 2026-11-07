@@ -19,3 +19,8 @@
 - Row 9: documented asset paths exist, obsolete effect claims are absent, and stated opacities match QML.
 - Row 10: applying only the three allowed edits to Base reproduces the entire current test file. No other test file differs.
 - Raw checks and screenshots are under `/tmp/v13-cleanup-build/`; they are temporary builder evidence, not independent check receipts.
+
+## Close decision
+
+- On 2026-11-07 the human approved Option A, accepting the Human checks and all six check-1 Maybes. Timing and visual follow-ups are in TODO.md. The PNG filenames remain in design-qa.md as the historical generation record. Isolated live verification and the photo-gradient measurement limit are accepted for this run.
+- The completed roadmap text is archived verbatim in this run's ROADMAP_ARCHIVE.md, with a link from ROADMAP.md. Keeping retired asset names in the run history preserves Proof row 8's search exclusions.
