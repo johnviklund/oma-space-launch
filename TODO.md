@@ -6,7 +6,9 @@ brainstorm` or `workflow todo` pass.
 
 ## Ideas
 
-(none yet)
+- Panel calm (from 2026-11-07 review): one-line upcoming rows (`Sep 20 · Starlink 15-27`, rocket
+  shown only when not Falcon 9), and a relative day in WHEN ("Tomorrow · 03:00"). Relative-day
+  logic must respect the UTC-calendar rule for NET dates.
 
 ## Active Initiatives
 

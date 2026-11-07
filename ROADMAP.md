@@ -21,6 +21,28 @@ Phased initiatives to implement `PRODUCT.md`. Each item is sized to one future w
       rocket-family SVGs with real per-family launch photos as a full-panel grayscale/fade
       background. Shipped 2026-09-13 — `.workflow/launch-panel-photos/`.
 
+## v1.3
+
+From an external review (2026-11-07). Each item is one workflow run.
+
+- [ ] **Correctness + cleanup** — show `T-14h 32m` (no frozen seconds) from 24h to 1h out, live
+      seconds only in the last hour; re-encode the three launchpad photos to ~100–200 KB and
+      delete the nine unused images plus dead `rocketArt()`; check dimmed stale text stays
+      readable across themes; remove the duplicate `docs/screenshots/mission-control.png`; sync
+      `DESIGN.md` to the images/effects the code actually uses.
+- [ ] **Watch link + status word** — keep `vid_urls` and status in the fetch cache (schema bump);
+      the panel's single link becomes "Watch launch →" when a webcast exists, else the current
+      SpaceX page link (one link, never two), and is keyboard-reachable with an accessible name;
+      show one status word (Hold / TBC / In flight) only when the launch isn't Go. Needs a small
+      `PRODUCT.md` update (Launch object, panel fields).
+
+**Considered and rejected (2026-11-07)** — don't re-propose without a new reason:
+- Local time for NET dates everywhere — NET dates stay on the UTC calendar on purpose (see
+  `.workflow/launch-widget/review.md` C1-3: local time shows the previous day west of UTC).
+- Quiet bar (rocket icon until a launch is <48h away or while NET/TBD) — conflicts with the
+  always-on countdown and "best-effort labeling over hiding".
+- Dropping "· Stale" from the pill — dimming alone is too weak a stale marker.
+
 ## v2 (not yet scoped — see `PRODUCT.md` anti-goals)
 
 - [ ] Configurable pre-launch desktop notifications (lead time, on/off) — explicitly deferred by
