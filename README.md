@@ -26,10 +26,13 @@ rm -rf "${XDG_CACHE_HOME:-$HOME/.cache}/oma-space-launch"   # optional: cached l
 
 ## Dependencies
 
-- `curl` and `jq` (preinstalled on Omarchy) — used by `scripts/fetch-launches.sh`.
+- `curl` 8.4 or newer and `jq` (preinstalled on Omarchy) — used by `scripts/fetch-launches.sh`.
 - Network access to the public [Launch Library 2](https://thespacedevs.com/llapi) API
   (`ll.thespacedevs.com`), polled at most every 15 minutes and cached under
   `${XDG_CACHE_HOME:-~/.cache}/oma-space-launch/`.
+
+Launch responses are limited to 1 MiB before parsing, and each cached text field has a byte limit.
+The final cache is limited to 64 KiB. Rejected responses leave the previous cache in place.
 
 ## License
 

@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "oma-space-launch",
   "name": "Space Launch",
-  "version": "1.3.0",
+  "version": "1.3.1",
   "author": "John Viklund",
   "description": "SpaceX launch countdown pill with detail popup",
   "kinds": [

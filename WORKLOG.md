@@ -5,6 +5,12 @@ source of truth (git is) and not an archive — keep roughly the 15 most recent 
 older ones when appending past that (they remain in git history). Entry shape and full rules: see
 the `workflow` skill's `references/learning-worklog.md`.
 
+## 2026-11-07 · fetch-size-limits · bounded launch responses and cache · GPT-6.1 Sol high
+- Addressed marketplace issue #14321: downloads stop at 1 MiB, every copied text field has a byte limit, and the final cache cannot exceed 64 KiB.
+- Invalid or oversized input preserves the previous cache. Downloads use temporary files instead of shell variables; README records the curl requirement and limits.
+- Validation: 39 tests pass, including real curl with declared and chunked oversized responses, retries, UTF-8 limits, and cache preservation. A live four-launch response is 184,719 bytes and passes normalization.
+- Finding: https://github.com/omacom/omarchy-plugin-marketplace/issues/14321#issuecomment-6713236364
+
 ## 2026-11-07 · v13-watch-status · webcast link, keyboard access and launch status · GPT-6.1 Sol high
 - Added one webcast-or-reference link, keyboard and accessible actions, Hold/TBC/In flight rows, and a v3 cache that still reads v2.
 - Commits: 46c58c5 spec · 2a0861f build · d9b53c5 independent check
