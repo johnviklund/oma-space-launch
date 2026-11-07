@@ -1,12 +1,16 @@
 # AGENTS — operating rules for coding agents in this repo
 
+This source lives in `dev/agent-tools/repo-instructions.md`. The developer explicitly runs
+`scripts/setup-agent-tools` to generate the ignored `AGENTS.md` entry point and skill pointers.
+Edit the source and rerun setup to refresh those local files.
+
 ## Doc layer (who owns what)
 
 | Doc | Owns | Never |
 |---|---|---|
 | `PRODUCT.md` | The north star: current + desired end state, purpose, users, core objects, workflows, principles, vocabulary, anti-goals | Sequencing (that's `ROADMAP.md`), not-yet-decided intake (that's `TODO.md`) |
 | `DESIGN.md` | The UI/design system this plugin owns (states, panel layout, fallback rules) | Restating Omarchy's own host styling, which this plugin inherits and does not redefine |
-| `AGENTS.md` (this file) | Operating rules for agents: this table, write scopes, command contracts, verification | Product or design decisions |
+| `dev/agent-tools/repo-instructions.md` | Operating rules for agents, exposed through a generated local `AGENTS.md` after developer opt-in | Product or design decisions |
 | `ROADMAP.md` | The sequence: phased initiatives, each sized to one workflow run | Restating `PRODUCT.md` content — items point at it |
 | `MEMORY.md` + `memory/` | Durable patterns/gotchas as pages, indexed | One-off task state |
 | `TODO.md` | Intake scratchpad for ideas between runs | Acting as a second roadmap |
@@ -19,7 +23,7 @@ sentence, not both.
 ## Write scopes
 
 - `.workflow/<slug>/` is tracked, always. Runs are history; wrap never deletes a folder.
-- Canonical docs (`PRODUCT.md`, `DESIGN.md`, `ROADMAP.md`, `AGENTS.md`) are edited only by the
+- Canonical docs (`PRODUCT.md`, `DESIGN.md`, `ROADMAP.md`, `dev/agent-tools/repo-instructions.md`) are edited only by the
   phase that owns that edit (see the `workflow` skill) — never opportunistically mid-implementation.
 - `MEMORY.md`/`memory/` are edited by `memory.remember`/`memory.compact`, not ad hoc.
 
@@ -38,7 +42,7 @@ No step is "done" without running its listed check and pasting the result. The m
 validate with `omarchy plugin validate .`, and QML changes must also be manually exercised in a
 running Omarchy session per the phase's acceptance examples.
 
-Drive the running app with the `verify-oma-space-launch` skill (`.agents/skills/verify-oma-space-launch/`); start
+Drive the running app with the `verify-oma-space-launch` skill (`dev/agent-tools/verify-oma-space-launch/`); start
 with its `features/README.md`.
 
 **A failing test is fixed in the code, never by editing or deleting the test.** This rule holds

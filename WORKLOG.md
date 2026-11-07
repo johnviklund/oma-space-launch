@@ -5,6 +5,12 @@ source of truth (git is) and not an archive — keep roughly the 15 most recent 
 older ones when appending past that (they remain in git history). Entry shape and full rules: see
 the `workflow` skill's `references/learning-worklog.md`.
 
+## 2026-11-08 · opt-in-agent-tools · versioned developer tools with explicit activation · GPT-6.1 Sol high
+- Addressed marketplace issue #14321 by moving agent instructions and verification tooling into `dev/agent-tools/`. Normal plugin checkouts contain no agent-discovery files.
+- Added `scripts/setup-agent-tools` to create ignored local instructions and skill pointers after developer opt-in. It preserves conflicting files and refuses symlinked destinations.
+- Validation: manifest and lint pass; all 49 tests pass, including tracked-package checks, fresh-checkout setup, repeat setup, source refresh, conflict handling, symlink refusal, and the relocated helper's default repository.
+- Finding: https://github.com/omacom/omarchy-plugin-marketplace/issues/14321#issuecomment-6713975584
+
 ## 2026-11-07 · fetch-size-limits · bounded launch responses and cache · GPT-6.1 Sol high
 - Addressed marketplace issue #14321: downloads stop at 1 MiB, every copied text field has a byte limit, and the final cache cannot exceed 64 KiB.
 - Invalid or oversized input preserves the previous cache. Downloads use temporary files instead of shell variables; README records the curl requirement and limits.

@@ -12,3 +12,9 @@ build/
 
 # verify-oma-space-launch evidence (default --out)
 .verify-evidence/
+
+# Generated only by an explicit developer opt-in with scripts/setup-agent-tools.
+/AGENTS.md
+/.agents/skills/verify-oma-space-launch/
+/.claude/skills/verify-oma-space-launch/
+/.agent-tools-state.json

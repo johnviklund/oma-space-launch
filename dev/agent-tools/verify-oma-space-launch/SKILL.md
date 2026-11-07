@@ -19,7 +19,7 @@ set). Uses `Hyprland`, `hyprctl`, `quickshell`/`qs`, `dbus-run-session`, `grim`,
 ## Launch
 
 ```bash
-C=.agents/skills/verify-oma-space-launch/scripts/control
+C=dev/agent-tools/verify-oma-space-launch/scripts/control
 $C up --id demo                       # default: fixture exact, next launch in 14h32m, your current theme
 $C up --id rp --theme rose-pine --fixture net --repo ../oma-space-launch-wt
 ```

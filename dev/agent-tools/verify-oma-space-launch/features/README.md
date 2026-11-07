@@ -7,7 +7,7 @@ and the plugin's install commands (`omarchy plugin add|enable|remove`, not mappe
 
 ## Baseline preconditions
 
-- `C=.agents/skills/verify-oma-space-launch/scripts/control`
+- `C=dev/agent-tools/verify-oma-space-launch/scripts/control`
 - `$C up --id ID` (add `--repo PATH` for a worktree, `--theme NAME` for a theme) has printed
   `"ready": true`.
 - Seeded data: `tests/fixtures/ll2-exact.json` shifted so the next launch is 14h32m from now:
