@@ -3,6 +3,8 @@
 An Omarchy bar-widget plugin that shows a persistent countdown to the next SpaceX launch in the
 top bar, with a click-to-open detail panel — following the same pattern as Omarchy's built-in
 Clock and Weather widgets.
+The panel includes a webcast or launch-page link and the next launch's status when relevant.
+See [`PRODUCT.md`](PRODUCT.md) for behavior and [`DESIGN.md`](DESIGN.md) for panel and keyboard details.
 
 ![Space Launch panel](preview.png)
 
@@ -45,8 +47,8 @@ rm -rf "${XDG_CACHE_HOME:-$HOME/.cache}/oma-space-launch"   # optional: cached l
 | [`TODO.md`](TODO.md) | Intake scratchpad for not-yet-scoped ideas |
 | [`WORKLOG.md`](WORKLOG.md) | Rolling pointer-index of what was built, into git history |
 
-Development follows the personal `workflow` skill: `brainstorm` → (optional `spec`) → `plan` →
-`execute` → `review` → `wrap`, one run per `ROADMAP.md` initiative under `.workflow/<slug>/`.
+Recent development uses the personal `jflow` skill: `spec` → `build` → `check` → `done`, with
+tracked run records under `.jflow/<slug>/`. Earlier `workflow` runs remain under `.workflow/<slug>/`.
 
 ## Install and develop
 
@@ -59,7 +61,10 @@ omarchy-shell shell rescanPlugins
 omarchy plugin enable oma-space-launch --section center
 ```
 
-The bar reloads plugin code from that symlink. Middle-click the pill to force a data refresh; use
-the four-launch `tests/fixtures/ll2-exact.json` fixture (plus the `ll2-net.json` and
-`ll2-tbd.json` state fixtures) with `scripts/fetch-launches.sh --from … --cache …` for offline
-panel checks.
+The bar reloads plugin code from that symlink. Middle-click the pill to force a data refresh.
+
+For isolated verification, use the [verify skill](.agents/skills/verify-oma-space-launch/SKILL.md)
+and its [feature map](.agents/skills/verify-oma-space-launch/features/README.md).
+Its `control` CLI runs a separate, invisible shell with stubbed network and browser calls.
+`control seed --fixture webcast` loads the webcast fixture; `control seed --status 5` seeds Hold.
+The exact, NET, TBD and empty fixtures cover the other panel states.
