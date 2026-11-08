@@ -33,6 +33,20 @@ test("v3 caches load while v2 caches still show their stale countdown", () => {
     assert.equal(model.deriveState(v2, now).label, "T-4h 12m · Stale");
 });
 
+test("oversized cache strings are rejected before JSON.parse runs", () => {
+    const oversized = JSON.stringify({ schemaVersion: 3, launches: [], note: "x".repeat(65536) });
+    const original = JSON.parse;
+    let parsed = false;
+    JSON.parse = (...args) => { parsed = true; return original(...args); };
+    try {
+        assert.equal(model.parseCache(oversized), null);
+        assert.equal(parsed, false);
+        assert.equal(model.parseCache(null), null);
+    } finally {
+        JSON.parse = original;
+    }
+});
+
 test("only Hold, TBC and In flight have panel status words", () => {
     for (const [statusId, expected] of [[5, "Hold"], [8, "TBC"], [6, "In flight"], [1, ""], [2, ""], [undefined, ""]])
         assert.equal(model.launchStatus({ statusId }), expected);

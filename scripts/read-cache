@@ -1,0 +1,28 @@
+#!/usr/bin/env python3
+"""Read a bounded launch cache without loading an oversized legacy file into the shell."""
+
+import sys
+
+# Match the producer's cache budget; the extra byte detects overflow after one
+# bounded read, including when a file grows or is replaced during an update.
+MAX_CACHE_BYTES = 65536
+
+
+def main():
+    if len(sys.argv) != 2:
+        print("Usage: read-cache CACHE", file=sys.stderr)
+        return 2
+    try:
+        with open(sys.argv[1], "rb") as cache:
+            data = cache.read(MAX_CACHE_BYTES + 1)
+    except OSError:
+        return 1
+    if len(data) > MAX_CACHE_BYTES:
+        print(f"launch cache exceeds {MAX_CACHE_BYTES} bytes", file=sys.stderr)
+        return 1
+    sys.stdout.buffer.write(data)
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

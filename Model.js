@@ -1,4 +1,8 @@
 function parseCache(text) {
+    // The file reader enforces a byte budget before IPC; also bound callers
+    // before JSON.parse allocates the cache object.
+    if (typeof text !== "string" || text.length > 65536)
+        return null;
     try {
         const cache = JSON.parse(text);
         return cache && (cache.schemaVersion === 2 || cache.schemaVersion === 3) && Array.isArray(cache.launches) ? cache : null;

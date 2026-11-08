@@ -52,6 +52,6 @@ and the plugin's install commands (`omarchy plugin add|enable|remove`, not mappe
 - [next-launch-panel](next-launch-panel.md): open and close the panel, read launch status, and open its webcast or reference link by keyboard.
 - [upcoming-list](upcoming-list.md): the panel lists up to three further launches.
 - [stale-state](stale-state.md): old data is marked stale on the pill and in the panel.
-- [refresh](refresh.md): data refreshes on a timer, on middle click, or by IPC; a failed fetch keeps the last data.
+- [refresh](refresh.md): refresh by timer, middle click or IPC; retained caches are size-bounded before loading, and failed fetches keep the last data.
 
-Last maintained: 2026-11-07 for v13-watch-status
+Last maintained: 2026-11-08 for retained-cache size limits

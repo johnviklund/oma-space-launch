@@ -5,6 +5,12 @@ source of truth (git is) and not an archive — keep roughly the 15 most recent 
 older ones when appending past that (they remain in git history). Entry shape and full rules: see
 the `workflow` skill's `references/learning-worklog.md`.
 
+## 2026-11-08 · retained-cache-read-limit · bounded cache loading on upgrade · GPT-6.1 Sol high
+- Addressed the remaining marketplace #14321 upgrade finding: `scripts/read-cache` reads at most 64 KiB plus one sentinel byte and emits nothing for oversized files. Both the widget and freshness check use it.
+- FileView watches metadata with preloading disabled; the shell receives only bounded process output. The model rejects oversized strings before parsing. Python 3 is now a documented runtime dependency.
+- Validation: 57 tests pass, including a 128 MiB sparse cache under a 64 MiB reader memory budget. Sandbox startup rejects an 8 MiB retained cache and attempts a refresh. Bounded replacement, repeated updates, deletion/restoration, and stale v2 startup work.
+- Added `control up --cache-file` to place retained caches before shell startup. Finding: https://github.com/omacom/omarchy-plugin-marketplace/issues/14321#issuecomment-6714576245
+
 ## 2026-11-08 · opt-in-agent-tools · versioned developer tools with explicit activation · GPT-6.1 Sol high
 - Addressed marketplace issue #14321 by moving agent instructions and verification tooling into `dev/agent-tools/`. Normal plugin checkouts contain no agent-discovery files.
 - Added `scripts/setup-agent-tools` to create ignored local instructions and skill pointers after developer opt-in. It preserves conflicting files and refuses symlinked destinations.

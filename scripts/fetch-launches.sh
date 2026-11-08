@@ -9,6 +9,7 @@ readonly RETRY_DELAY_SECONDS=120
 # raw response bytes out of shell variables and the shared desktop shell.
 readonly MAX_RESPONSE_BYTES=1048576
 readonly MAX_CACHE_BYTES=65536
+readonly CACHE_READER="$(dirname -- "${BASH_SOURCE[0]}")/read-cache"
 
 source_file=""
 cache_path="${XDG_CACHE_HOME:-$HOME/.cache}/oma-space-launch/launches.json"
@@ -52,7 +53,7 @@ now_seconds="$(date -u +%s)"
 if ! "$force_refresh" && [[ -f "$cache_path" ]]; then
     cache_mtime="$(stat -c %Y "$cache_path")"
     if ((now_seconds - cache_mtime < CACHE_TTL_SECONDS)) \
-        && jq -e '.schemaVersion == 3' "$cache_path" >/dev/null 2>&1; then
+        && "$CACHE_READER" "$cache_path" | jq -e '.schemaVersion == 3' >/dev/null 2>&1; then
         exit 0
     fi
 fi

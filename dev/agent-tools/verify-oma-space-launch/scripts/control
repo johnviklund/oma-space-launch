@@ -319,6 +319,9 @@ def cmd_up(a):
     repo = Path(a.repo).resolve() if a.repo else DEFAULT_REPO
     if not (repo / "manifest.json").exists() or json.loads((repo / "manifest.json").read_text()).get("id") != APP:
         fail(f"{repo} is not an {APP} checkout", "pass `--repo PATH` pointing at the plugin's checkout or worktree")
+    initial_cache = Path(a.cache_file).resolve() if a.cache_file else None
+    if initial_cache and not initial_cache.is_file():
+        fail(f"cache file not found: {initial_cache}", "pass an existing launch cache JSON file with `--cache-file FILE`")
     if a.theme:
         theme_src = THEMES_DIR / a.theme
         if not (theme_src / "colors.toml").exists():
@@ -339,13 +342,14 @@ def cmd_up(a):
     home = rd / "home"
     plan = {
         "id": run_id, "run_dir": str(rd), "repo": str(repo), "theme": str(theme_src), "size": a.size,
-        "network": a.network, "fixture": a.fixture, "next_in": a.next_in, "family": a.family, "status": a.status, "stale": a.stale,
+        "network": a.network, "fixture": a.fixture, "cache_file": str(initial_cache) if initial_cache else None,
+        "next_in": a.next_in, "family": a.family, "status": a.status, "stale": a.stale,
         "steps": [
             f"write sandbox HOME {home} (bar holds only {APP}; all other first-party plugins disabled; plugin dir links to the repo)",
             f"start nested Hyprland via the session's exec on hidden workspace special:verify-{run_id}",
             f"add headless output verify-{run_id} ({a.size}) and remove the nested window output, so nothing shows on the desktop",
+            "prepare the initial cache before starting the shell (copy --cache-file, or seed through the fetch script)",
             "start the Omarchy shell under dbus-run-session with the sandbox HOME",
-            "seed the cache through scripts/fetch-launches.sh --from FIXTURE",
         ],
     }
     if a.dry_run:
@@ -442,6 +446,15 @@ def cmd_up(a):
         if m.get("name") != state["monitor"]:
             run(["hyprctl", "output", "remove", m["name"]], env=env, check=True)
 
+    # Prepare retained-cache fixtures before Quickshell can load any plugin QML.
+    if initial_cache:
+        target = cache_path(state)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(initial_cache, target)
+        seeded = {"seeded": True, "cache": str(target), "copied_from": str(initial_cache), "bytes": target.stat().st_size}
+    else:
+        seeded = seed(state, a.fixture, a.next_in, a.family, a.status, a.stale)
+
     # 4. shell
     log = open(rd / "shell.log", "w")
     proc = subprocess.Popen(["dbus-run-session", "--", "quickshell", "-p", str(OMARCHY_PATH / "shell")],
@@ -455,16 +468,14 @@ def cmd_up(a):
     state["shell_pid"] = qpid
     save_state(state)
 
-    # 5. seed through the repo's fetch script, then wait for ready
-    seeded = seed(state, a.fixture, a.next_in, a.family, a.status, a.stale)
-
+    # 5. wait for ready
     def ready():
         show = run(["qs", "ipc", "--pid", str(qpid), "show"], env=nested_env(state), timeout=5).stdout
         layers = json.dumps(hyprctl_json(state, "layers") or {})
         return f"target {APP}" in show and "omarchy-bar" in layers
     if not wait_for(ready, 20, 0.5):
         abort(f"shell started but the {APP} bar widget never registered", f"read {rd}/shell.log for QML errors")
-    time.sleep(1.5)  # first frame + cache FileView load
+    time.sleep(1.5)  # first frame + bounded cache read
     emit({"ok": True, "id": run_id, "ready": True, "monitor": state["monitor"], "wayland_display": state["wayland_display"],
           "repo": str(repo), "revision": git(repo, "rev-parse", "--short", "HEAD"),
           "dirty": bool(git(repo, "status", "--porcelain")), "theme": str(theme_src), "network": a.network,
@@ -810,6 +821,7 @@ def main():
              "control up --id demo --fixture exact --next-in 14h32m --theme rose-pine", cmd_up)
     sp.add_argument("--id", help="run id (default random); several runs can be up side by side")
     sp.add_argument("--repo", help=f"plugin checkout or worktree to load (default {DEFAULT_REPO})")
+    sp.add_argument("--cache-file", help="copy an existing cache into the sandbox before shell startup, instead of seeding a fixture")
     sp.add_argument("--theme", help="an Omarchy theme name under /usr/share/omarchy/themes (default: your current theme, read-only)")
     sp.add_argument("--size", default="1440x900", help="headless output size (default 1440x900)")
     sp.add_argument("--network", choices=("stub", "live"), default="stub",

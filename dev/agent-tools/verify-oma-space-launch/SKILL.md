@@ -22,6 +22,7 @@ set). Uses `Hyprland`, `hyprctl`, `quickshell`/`qs`, `dbus-run-session`, `grim`,
 C=dev/agent-tools/verify-oma-space-launch/scripts/control
 $C up --id demo                       # default: fixture exact, next launch in 14h32m, your current theme
 $C up --id rp --theme rose-pine --fixture net --repo ../oma-space-launch-wt
+$C up --id upgrade --cache-file /tmp/legacy-launch-cache.json # retained cache, copied before shell startup
 ```
 
 Ready means `up` printed `"ready": true`, which it only does after the widget's IPC target

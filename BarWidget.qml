@@ -11,6 +11,7 @@ BarWidget {
 
     readonly property string cachePath: (Quickshell.env("XDG_CACHE_HOME") || Quickshell.env("HOME") + "/.cache") + "/oma-space-launch/launches.json"
     readonly property string fetchScript: Qt.resolvedUrl("scripts/fetch-launches.sh").toString()
+    readonly property string cacheReaderScript: Qt.resolvedUrl("scripts/read-cache").toString()
     property var cache: null
     property double nowMs: Date.now()
     readonly property var next: Model.nextLaunch(cache)
@@ -52,6 +53,11 @@ BarWidget {
         fetchProcess.running = true
     }
 
+    function loadCache() {
+        if (cacheReader.running) cacheReader.reloadRequested = true
+        else cacheReader.running = true
+    }
+
     implicitWidth: button.implicitWidth
     implicitHeight: button.implicitHeight
 
@@ -59,21 +65,35 @@ BarWidget {
     onSettingsChanged: injectPanel()
 
     FileView {
-        id: cacheFile
+        // Watch metadata only. Never ask FileView to load untrusted cache data.
+        preload: false
         path: root.cachePath
         watchChanges: true
-        atomicWrites: true
         printErrors: false
-        onFileChanged: reload()
-        onLoaded: root.cache = Model.parseCache(text())
-        onLoadFailed: root.cache = null
+        onFileChanged: root.loadCache()
+    }
+
+    Process {
+        id: cacheReader
+        property bool reloadRequested: false
+        command: [root.cacheReaderScript, root.cachePath]
+        running: true
+        stdout: StdioCollector {
+            onStreamFinished: root.cache = Model.parseCache(text)
+        }
+        onExited: {
+            if (reloadRequested) {
+                reloadRequested = false
+                Qt.callLater(root.loadCache)
+            }
+        }
     }
 
     Process {
         id: fetchProcess
         command: [root.fetchScript]
         onExited: function(exitCode) {
-            if (exitCode === 0) cacheFile.reload()
+            if (exitCode === 0) root.loadCache()
         }
     }
 
